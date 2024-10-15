@@ -1,6 +1,11 @@
 ﻿using StardewModdingAPI.Events;
 using StardewModdingAPI;
 using StardewValley;
+using xTile.Tiles;
+using System.ComponentModel;
+using xTile;
+using xTile.Layers;
+using xTile.Dimensions;
 
 
 namespace Playable_Piano
@@ -42,6 +47,7 @@ namespace Playable_Piano
     internal sealed class PlayablePiano : Mod
     {
         string[] pianos = {"Dark Piano", "Upright Piano"};
+        string sound = "toypiano";
         public override void Entry(IModHelper helper)
         {
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
@@ -52,12 +58,21 @@ namespace Playable_Piano
         {
             if (!Context.IsWorldReady)
                 return;
-            //this.Monitor.Log($"{e.Button.ToString()}",LogLevel.Debug);
             if (Game1.player.IsSitting())
             {
                 GameLocation location = Game1.currentLocation;
                 Farmer player = Game1.player;
-                string? tile_name = location.getObjectAtTile((int)player.Tile.X, (int)player.Tile.Y).displayName;
+                string tile_name;
+
+                try
+                {
+                    tile_name = location.getObjectAtTile((int)player.Tile.X, (int)player.Tile.Y).DisplayName;
+                } 
+                catch (NullReferenceException) 
+                {
+                    return;
+                }
+                this.Monitor.Log($"{tile_name}", LogLevel.Debug);
                 if (tile_name == null) { return; }
 
                 // check if player is sitting at a Piano
@@ -68,12 +83,18 @@ namespace Playable_Piano
                     {
                         this.Helper.Input.Suppress(e.Button);
                         int pitch = (int) played_note;
-                        location.playSound("toyPiano", player.Tile, pitch);
+                        location.playSound(sound, player.Tile, pitch);
                     }
                 }
-                //this.Monitor.Log($"sitting at {location.getObjectAtTile((int)player.Tile.X, (int)player.Tile.Y).displayName}", LogLevel.Debug);
                 
             }
+
+        }
+        private Tile GetTile(Map map, string layerName, int tileX, int tileY)
+        {
+            Layer layer = map.GetLayer(layerName);
+            Location pixelPosition = new Location(tileX * Game1.tileSize, tileY * Game1.tileSize);
+            return layer.PickTile(pixelPosition, Game1.viewport.Size);
         }
     }
 }
