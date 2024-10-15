@@ -75,7 +75,6 @@ namespace Playable_Piano
 
                 // getObjectAtTile returns null when called in the middle of sitting down/standing up
                 tile_name = location.getObjectAtTile((int)player.Tile.X, (int)player.Tile.Y, true).Name;
-                this.Monitor.Log(tile_name);
 
                 if (tile_name == null)
                 {
@@ -85,11 +84,13 @@ namespace Playable_Piano
                 string sound;
                 try
                 {
+                    // On ModEntry instrumentSoundData gets checked for a null value
+                    // if it is, the Mod doesn't load, the Null Dereference warning can thus be ignored
                     sound = this.instrumentSoundData[tile_name];
                 }
                 catch (KeyNotFoundException)
                 {
-                    this.Monitor.Log($"No Sounddata found for '{tile_name}' check the mods config file", LogLevel.Debug);
+                    this.Monitor.Log($"No Sounddata found for '{tile_name}' check the mod's config file", LogLevel.Debug);
                     return;
                 }
                 // check if player is sitting at a Piano
