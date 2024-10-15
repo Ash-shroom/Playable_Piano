@@ -6,6 +6,7 @@ using System.ComponentModel;
 using xTile;
 using xTile.Layers;
 using xTile.Dimensions;
+using System.Collections;
 
 
 namespace Playable_Piano
@@ -25,31 +26,39 @@ namespace Playable_Piano
         N = 900,
         J = 1000,
         M = 1100,
-        
+
         // uppper Octave
-        Q  = 1200,
+        Q = 1200,
         D2 = 1300,
-        W  = 1400,
+        W = 1400,
         D3 = 1500,
-        E  = 1600,
-        R  = 1700,
+        E = 1600,
+        R = 1700,
         D5 = 1800,
-        T  = 1900,
+        T = 1900,
         D6 = 2000,
-        Y  = 2100,
+        Y = 2100,
         D7 = 2200,
-        U  = 2300,
-        I  = 2400
+        U = 2300,
+        I = 2400
     }
 
 
 
     internal sealed class PlayablePiano : Mod
     {
-        string[] pianos = {"Dark Piano", "Upright Piano"};
-        string sound = "toyPiano";
+        private Dictionary<string, string>? instrumentSoundData;
+
+
         public override void Entry(IModHelper helper)
         {
+            this.instrumentSoundData = helper.ReadConfig<ModConfig>().InstrumentData;
+            if (this.instrumentSoundData == null) 
+            {
+                this.Monitor.Log("Could not load Instrument Data, check whether the config file exists.", LogLevel.Error);
+                return;
+            }
+            this.Monitor.Log($"Loaded Instruments:\n{string.Join("\n", this.instrumentSoundData.Select(pair => $"\t{pair.Key} : {pair.Value}"))}", LogLevel.Debug);
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
         }
 
@@ -62,32 +71,38 @@ namespace Playable_Piano
             {
                 GameLocation location = Game1.currentLocation;
                 Farmer player = Game1.player;
-                string tile_name;
+                string? tile_name;
 
-                // getObjectAtTile return null when in the middle of sitting down/standing up
-                try { tile_name = location.getObjectAtTile((int)player.Tile.X, (int)player.Tile.Y).DisplayName; }
-                catch (NullReferenceException) { return; }
+                // getObjectAtTile returns null when called in the middle of sitting down/standing up
+                tile_name = location.getObjectAtTile((int)player.Tile.X, (int)player.Tile.Y, true).Name;
+                this.Monitor.Log(tile_name);
 
-                // check if player is sitting at a Piano
-                if (Array.Exists(pianos, x => x == tile_name)) 
+                if (tile_name == null)
                 {
-                    Notes played_note;
-                    if (Notes.TryParse(e.Button.ToString(), out played_note))
-                    {
-                        this.Helper.Input.Suppress(e.Button);
-                        int pitch = (int) played_note;
-                        location.playSound(sound, player.Tile, pitch);
-                    }
+                    return;
                 }
-                
+
+                string sound;
+                try
+                {
+                    sound = this.instrumentSoundData[tile_name];
+                }
+                catch (KeyNotFoundException)
+                {
+                    this.Monitor.Log($"No Sounddata found for '{tile_name}' check the mods config file", LogLevel.Debug);
+                    return;
+                }
+                // check if player is sitting at a Piano
+                Notes played_note;
+                if (Notes.TryParse(e.Button.ToString(), out played_note))
+                {
+                    this.Helper.Input.Suppress(e.Button);
+                    int pitch = (int)played_note;
+                    location.playSound(sound, player.Tile, pitch);
+                }
+
             }
 
-        }
-        private Tile GetTile(Map map, string layerName, int tileX, int tileY)
-        {
-            Layer layer = map.GetLayer(layerName);
-            Location pixelPosition = new Location(tileX * Game1.tileSize, tileY * Game1.tileSize);
-            return layer.PickTile(pixelPosition, Game1.viewport.Size);
         }
     }
 }
