@@ -47,7 +47,7 @@ namespace Playable_Piano
     internal sealed class PlayablePiano : Mod
     {
         string[] pianos = {"Dark Piano", "Upright Piano"};
-        string sound = "toypiano";
+        string sound = "toyPiano";
         public override void Entry(IModHelper helper)
         {
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
@@ -64,16 +64,9 @@ namespace Playable_Piano
                 Farmer player = Game1.player;
                 string tile_name;
 
-                try
-                {
-                    tile_name = location.getObjectAtTile((int)player.Tile.X, (int)player.Tile.Y).DisplayName;
-                } 
-                catch (NullReferenceException) 
-                {
-                    return;
-                }
-                this.Monitor.Log($"{tile_name}", LogLevel.Debug);
-                if (tile_name == null) { return; }
+                // getObjectAtTile return null when in the middle of sitting down/standing up
+                try { tile_name = location.getObjectAtTile((int)player.Tile.X, (int)player.Tile.Y).DisplayName; }
+                catch (NullReferenceException) { return; }
 
                 // check if player is sitting at a Piano
                 if (Array.Exists(pianos, x => x == tile_name)) 
