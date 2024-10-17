@@ -9,6 +9,9 @@ using xTile.Dimensions;
 using System.Collections;
 using StardewValley.Menus;
 using Microsoft.Xna.Framework.Graphics;
+using System.Drawing;
+using Microsoft.Xna.Framework;
+using xTile.Display;
 
 namespace Playable_Piano
 {
@@ -55,8 +58,11 @@ namespace Playable_Piano
     internal sealed class PlayablePiano : Mod
     {
         private Dictionary<string, string>? instrumentSoundData;
-        internal State currentState = State.None;
-        
+        private State currentState = State.None;
+        private string sound = "toyPiano";
+        private PianoMenu? mainMenu;
+
+
 
         public override void Entry(IModHelper helper)
         {
@@ -67,6 +73,7 @@ namespace Playable_Piano
                 return;
             }
             this.Monitor.Log($"Loaded Instruments:\n{string.Join("\n", this.instrumentSoundData.Select(pair => $"\t{pair.Key} : {pair.Value}"))}", LogLevel.Debug);
+            mainMenu = new PianoMenu(this);
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
         }
 
@@ -79,47 +86,74 @@ namespace Playable_Piano
             {
                 GameLocation location = Game1.currentLocation;
                 Farmer player = Game1.player;
-                string? tile_name;
-
-                // getObjectAtTile returns null when called in the middle of sitting down/standing up
-                tile_name = location.getObjectAtTile((int)player.Tile.X, (int)player.Tile.Y, true).Name;
-
-                if (tile_name == null)
+                switch (currentState)
                 {
-                    return;
+                    case (State.None):
+                        string? tile_name;
+                        tile_name = location.getObjectAtTile((int)player.Tile.X, (int)player.Tile.Y, true).Name;
+                        // getObjectAtTile returns null when called in the middle of sitting down/standing up
+                        if (tile_name == null)
+                        {
+                            return;
+                        }
+
+
+                        // check if Sound data exists for the instrument
+                        // On ModEntry instrumentSoundData gets checked for a null value
+                        // if it is, the Mod doesn't load, the Null Dereference warning can thus be ignored
+                        if (instrumentSoundData.ContainsKey(tile_name))
+                        {
+                            sound = instrumentSoundData[tile_name];
+                            Game1.activeClickableMenu = mainMenu;
+                            currentState = State.Menu;
+                            break;
+                        }
+                        else
+                        {
+                            this.Monitor.Log($"No Sounddata found for '{tile_name}'. If it's supposed to have sound check the mod's config file", LogLevel.Debug);
+                            return;
+                        }
+
+                    case (State.Freeplay):
+                        Notes played_note;
+                        this.Helper.Input.Suppress(e.Button);
+                        string input = e.Button.ToString();
+                        if (Notes.TryParse(input, out played_note))
+                        {
+                            int pitch = (int)played_note;
+                            location.playSound(sound, player.Tile, pitch);
+                        }
+                        else if (input == "MouseRight" || input == "Escape")
+                        {
+                            Game1.activeClickableMenu = mainMenu;
+                            currentState = State.Menu;
+                        }
+                        break;
+                    case (State.Menu):
+                        // while in Menu do nothing
+                        break;
                 }
-
-                string sound;
-
-                // get Instrument Sound, implicitly check if player is sitting at a Piano or other instrument
-                try
-                {
-                    // On ModEntry instrumentSoundData gets checked for a null value
-                    // if it is, the Mod doesn't load, the Null Dereference warning can thus be ignored
-                    sound = this.instrumentSoundData[tile_name];
-                }
-                catch (KeyNotFoundException)
-                {
-                    this.Monitor.Log($"No Sounddata found for '{tile_name}' check the mod's config file", LogLevel.Debug);
-                    return;
-                }
-
-                // Player is sitting at a piano and Sound Data has been found
-
-                PianoMenu Menu = new PianoMenu(this);
-
-                Game1.activeClickableMenu = Menu;
-
-                Notes played_note;
-                if (Notes.TryParse(e.Button.ToString(), out played_note))
-                {
-                    this.Helper.Input.Suppress(e.Button);
-                    int pitch = (int)played_note;
-                    location.playSound(sound, player.Tile, pitch);
-                }
-
+            }
+            else
+            {
+                // when the player stands up, always return to default state None
+                currentState = State.None;
             }
 
+        }
+
+
+        internal void handleUIButtonPress(string buttonName)
+        {
+            switch (buttonName)
+            {
+                case ("FreeplayButton"):
+                    currentState = State.Freeplay;
+                    Game1.activeClickableMenu = new FreePlayUI();
+                    break;
+                case ("TrackplayButton"):
+                    break;
+            }
         }
     }
 }

@@ -19,6 +19,7 @@ namespace Playable_Piano
         int ButtonHeight = 50 ;
         PlayablePiano mainMod;
         private List<ClickableComponent> Buttons;
+        bool currentlyOpen = false;
 
         public PianoMenu(PlayablePiano mainMod)
         {
@@ -30,13 +31,14 @@ namespace Playable_Piano
 
         public override void draw(SpriteBatch b)
         {
-            int xPos = Game1.viewport.Width / 4;
-            int yPos = Game1.viewport.Height / 4;
+            int xPos = Game1.viewport.Width / 2 - ButtonWidth / 2;
+            int yPos = Game1.viewport.Height / 2 - 2 * ButtonHeight;
             setupUI(xPos, yPos);
             //Game1.drawDialogueBox(xPos, yPos, menuWidth, menuHeight, false, true);
             drawButtons(b);
             //ClickableComponent freePlayButton = new ClickableComponent(new Rectangle(xPos + 10, yPos + 10, 100, 50), "freeplayButton", "Button");
             this.drawMouse(b);
+            currentlyOpen = true;
         }
         public override void receiveLeftClick(int x, int y, bool playSound = true)
         {
@@ -45,13 +47,18 @@ namespace Playable_Piano
                 if (button.containsPoint(x,y))
                 {
                     mainMod.handleUIButtonPress(button.name);
+                    currentlyOpen = false;
                     exitThisMenu();
                 }
             }
         }
         public override void receiveRightClick(int x, int y, bool playSound = true)
         {
-            exitThisMenu();
+            if (currentlyOpen) 
+            {
+                currentlyOpen = false;
+                exitThisMenu();
+            }
         }
 
         private void setupUI(int xPos, int yPos) 
