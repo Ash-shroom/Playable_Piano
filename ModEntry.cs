@@ -7,7 +7,8 @@ using xTile;
 using xTile.Layers;
 using xTile.Dimensions;
 using System.Collections;
-
+using StardewValley.Menus;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Playable_Piano
 {
@@ -43,17 +44,24 @@ namespace Playable_Piano
         I = 2400
     }
 
-
+    enum State
+    {
+        None,
+        Menu,
+        Freeplay,
+        Performance
+    }
 
     internal sealed class PlayablePiano : Mod
     {
         private Dictionary<string, string>? instrumentSoundData;
-
+        internal State currentState = State.None;
+        
 
         public override void Entry(IModHelper helper)
         {
             this.instrumentSoundData = helper.ReadConfig<ModConfig>().InstrumentData;
-            if (this.instrumentSoundData == null) 
+            if (this.instrumentSoundData == null)
             {
                 this.Monitor.Log("Could not load Instrument Data, check whether the config file exists.", LogLevel.Error);
                 return;
@@ -82,6 +90,8 @@ namespace Playable_Piano
                 }
 
                 string sound;
+
+                // get Instrument Sound, implicitly check if player is sitting at a Piano or other instrument
                 try
                 {
                     // On ModEntry instrumentSoundData gets checked for a null value
@@ -93,7 +103,13 @@ namespace Playable_Piano
                     this.Monitor.Log($"No Sounddata found for '{tile_name}' check the mod's config file", LogLevel.Debug);
                     return;
                 }
-                // check if player is sitting at a Piano
+
+                // Player is sitting at a piano and Sound Data has been found
+
+                PianoMenu Menu = new PianoMenu(this);
+
+                Game1.activeClickableMenu = Menu;
+
                 Notes played_note;
                 if (Notes.TryParse(e.Button.ToString(), out played_note))
                 {
@@ -107,3 +123,4 @@ namespace Playable_Piano
         }
     }
 }
+
