@@ -11,12 +11,12 @@ using System.Runtime.CompilerServices;
 using System.Reflection.Emit;
 using Force.DeepCloner;
 
-namespace Playable_Piano
+namespace Playable_Piano.UI
 {
     internal sealed class PianoMenu : IClickableMenu
     {
         int ButtonWidth = 200;
-        int ButtonHeight = 50 ;
+        int ButtonHeight = 50;
         PlayablePiano mainMod;
         private List<ClickableComponent> Buttons;
         bool currentlyOpen = false;
@@ -24,7 +24,7 @@ namespace Playable_Piano
         public PianoMenu(PlayablePiano mainMod)
         {
             this.mainMod = mainMod;
-            this.Buttons = new List<ClickableComponent>();
+            Buttons = new List<ClickableComponent>();
         }
 
         //128 384 Sprite Pos Music note
@@ -36,15 +36,18 @@ namespace Playable_Piano
             setupUI(xPos, yPos);
             //Game1.drawDialogueBox(xPos, yPos, menuWidth, menuHeight, false, true);
             drawButtons(b);
+
+            Utility.DrawSquare(b, new Rectangle(5, 5, Game1.viewport.Width - 10, 70), 5, new Color(91, 43, 42, 255), new Color(249, 186, 102, 255));
+            Utility.drawBoldText(b, "Press Right Mousebutton to close this menu", Game1.smallFont, new Vector2(20, 20), Color.Black);
             //ClickableComponent freePlayButton = new ClickableComponent(new Rectangle(xPos + 10, yPos + 10, 100, 50), "freeplayButton", "Button");
-            this.drawMouse(b);
+            drawMouse(b);
             currentlyOpen = true;
         }
         public override void receiveLeftClick(int x, int y, bool playSound = true)
         {
             foreach (ClickableComponent button in Buttons)
             {
-                if (button.containsPoint(x,y))
+                if (button.containsPoint(x, y))
                 {
                     mainMod.handleUIButtonPress(button.name);
                     currentlyOpen = false;
@@ -54,18 +57,19 @@ namespace Playable_Piano
         }
         public override void receiveRightClick(int x, int y, bool playSound = true)
         {
-            if (currentlyOpen) 
+            if (currentlyOpen)
             {
+                mainMod.handleUIButtonPress("MenuClose");
                 currentlyOpen = false;
                 exitThisMenu();
             }
         }
 
-        private void setupUI(int xPos, int yPos) 
+        private void setupUI(int xPos, int yPos)
         {
-            this.Buttons.Clear();
-            this.Buttons.Add(new ClickableComponent(new Rectangle(xPos, yPos, ButtonWidth, ButtonHeight), "FreeplayButton", "Freeplay"));
-            this.Buttons.Add(new ClickableComponent(new Rectangle(xPos, yPos + 2 * ButtonHeight, ButtonWidth, ButtonHeight), "TrackplayButton", "Play Track"));
+            Buttons.Clear();
+            Buttons.Add(new ClickableComponent(new Rectangle(xPos, yPos, ButtonWidth, ButtonHeight), "FreeplayButton", "Freeplay"));
+            Buttons.Add(new ClickableComponent(new Rectangle(xPos, yPos + 2 * ButtonHeight, ButtonWidth, ButtonHeight), "TrackplayButton", "Play Track"));
         }
 
         private void drawButtons(SpriteBatch b)
@@ -78,7 +82,7 @@ namespace Playable_Piano
                 buttonBackgroundBounds.Height += 20;
                 buttonBackgroundBounds.Width += 20;
                 Utility.DrawSquare(b, buttonBackgroundBounds, 5, new Color(91, 43, 42, 255), new Color(249, 186, 102, 255));
-                Utility.drawTextWithShadow(b, button.label, Game1.dialogueFont, new Vector2(button.bounds.X, button.bounds.Y),Game1.textColor);
+                Utility.drawTextWithShadow(b, button.label, Game1.dialogueFont, new Vector2(button.bounds.X, button.bounds.Y), Game1.textColor);
             }
         }
     }

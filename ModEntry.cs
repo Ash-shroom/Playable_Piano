@@ -12,10 +12,12 @@ using Microsoft.Xna.Framework.Graphics;
 using System.Drawing;
 using Microsoft.Xna.Framework;
 using xTile.Display;
+using Playable_Piano.UI;
+using ABC;
 
 namespace Playable_Piano
 {
-    enum Notes : int
+    enum ButtonToPitches : int
     {
         // lower Octave
         Z = 0,
@@ -47,6 +49,8 @@ namespace Playable_Piano
         I = 2400
     }
 
+   
+
     enum State
     {
         None,
@@ -61,6 +65,7 @@ namespace Playable_Piano
         private State currentState = State.None;
         private string sound = "toyPiano";
         private PianoMenu? mainMenu;
+        private TrackPlayer? trackPlayer;
 
 
 
@@ -89,6 +94,10 @@ namespace Playable_Piano
                 switch (currentState)
                 {
                     case (State.None):
+                        if (e.Button.ToString() == "MouseRight" || e.Button.ToString() == "Escape")
+                        {
+                            return;
+                        }
                         string? tile_name;
                         tile_name = location.getObjectAtTile((int)player.Tile.X, (int)player.Tile.Y, true).Name;
                         // getObjectAtTile returns null when called in the middle of sitting down/standing up
@@ -115,10 +124,10 @@ namespace Playable_Piano
                         }
 
                     case (State.Freeplay):
-                        Notes played_note;
+                        ButtonToPitches played_note;
                         this.Helper.Input.Suppress(e.Button);
                         string input = e.Button.ToString();
-                        if (Notes.TryParse(input, out played_note))
+                        if (ButtonToPitches.TryParse(input, out played_note))
                         {
                             int pitch = (int)played_note;
                             location.playSound(sound, player.Tile, pitch);
@@ -129,6 +138,22 @@ namespace Playable_Piano
                             currentState = State.Menu;
                         }
                         break;
+
+                    case (State.Performance):
+                        if (e.Button.ToString() == "MouseRight")
+                        {
+                            this.Helper.Events.GameLoop.UpdateTicking -= PlaySong;
+                            Game1.activeClickableMenu = mainMenu;
+                            currentState = State.Menu;
+                            break;
+                        }
+                        string path = Path.Combine(Helper.DirectoryPath, "test.abc");
+                        FileStream abcFile = new FileStream(path, FileMode.Open);
+                        Tune tune = Tune.Load(abcFile);
+                        trackPlayer = new TrackPlayer(tune);
+                        this.Helper.Events.GameLoop.UpdateTicking += PlaySong;                     
+                        break;
+
                     case (State.Menu):
                         // while in Menu do nothing
                         break;
@@ -142,6 +167,10 @@ namespace Playable_Piano
 
         }
 
+        private void PlaySong(object? sender, UpdateTickingEventArgs e)
+        {
+        }
+
 
         internal void handleUIButtonPress(string buttonName)
         {
@@ -152,6 +181,10 @@ namespace Playable_Piano
                     Game1.activeClickableMenu = new FreePlayUI();
                     break;
                 case ("TrackplayButton"):
+                    currentState = State.Performance;
+                    break;
+                case ("MenuClose"):
+                    currentState = State.None;
                     break;
             }
         }
