@@ -14,6 +14,7 @@ using Microsoft.Xna.Framework;
 using xTile.Display;
 using Playable_Piano.UI;
 using ABC;
+using System.Linq.Expressions;
 
 namespace Playable_Piano
 {
@@ -127,7 +128,7 @@ namespace Playable_Piano
                         ButtonToPitches played_note;
                         this.Helper.Input.Suppress(e.Button);
                         string input = e.Button.ToString();
-                        if (ButtonToPitches.TryParse(input, out played_note))
+                        if (ButtonToPitches.TryParse(input, out played_note))  
                         {
                             int pitch = (int)played_note;
                             location.playSound(sound, player.Tile, pitch);
@@ -138,7 +139,7 @@ namespace Playable_Piano
                             currentState = State.Menu;
                         }
                         break;
-
+                        
                     case (State.Performance):
                         if (e.Button.ToString() == "MouseRight")
                         {
@@ -151,7 +152,9 @@ namespace Playable_Piano
                         FileStream abcFile = new FileStream(path, FileMode.Open);
                         Tune tune = Tune.Load(abcFile);
                         trackPlayer = new TrackPlayer(tune);
-                        this.Helper.Events.GameLoop.UpdateTicking += PlaySong;                     
+                        this.Helper.Events.GameLoop.UpdateTicking += PlaySong;
+                        this.Monitor.Log("yeag");
+                        currentState = State.Menu;                  
                         break;
 
                     case (State.Menu):
@@ -169,6 +172,20 @@ namespace Playable_Piano
 
         private void PlaySong(object? sender, UpdateTickingEventArgs e)
         {
+            Note? playedNote = trackPlayer.GetNextNote();
+            if (playedNote is not null)
+            {
+                this.Monitor.Log($"{playedNote.Pitch} with Duration {playedNote.Duration}");
+                if (playedNote.Pitch >= 0)
+                {
+                    Game1.currentLocation.playSound(sound, Game1.player.Tile, playedNote.Pitch);
+                }
+                else
+                {
+                    this.Helper.Events.GameLoop.UpdateTicking -= this.PlaySong;
+                    Game1.activeClickableMenu = mainMenu;
+                }
+            }
         }
 
 
