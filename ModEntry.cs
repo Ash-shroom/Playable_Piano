@@ -147,14 +147,7 @@ namespace Playable_Piano
                             Game1.activeClickableMenu = mainMenu;
                             currentState = State.Menu;
                             break;
-                        }
-                        string path = Path.Combine(Helper.DirectoryPath, "test.abc");
-                        FileStream abcFile = new FileStream(path, FileMode.Open);
-                        Tune tune = Tune.Load(abcFile);
-                        trackPlayer = new TrackPlayer(tune);
-                        this.Helper.Events.GameLoop.UpdateTicking += PlaySong;
-                        this.Monitor.Log("yeag");
-                        currentState = State.Menu;                  
+                        }       
                         break;
 
                     case (State.Menu):
@@ -176,9 +169,15 @@ namespace Playable_Piano
             if (playedNote is not null)
             {
                 this.Monitor.Log($"{playedNote.Pitch} with Duration {playedNote.Duration}");
+                //Normal Note
                 if (playedNote.Pitch >= 0)
                 {
                     Game1.currentLocation.playSound(sound, Game1.player.Tile, playedNote.Pitch);
+                }
+                //Rest
+                else if (playedNote.Duration >= 0)
+                {
+                    return;
                 }
                 else
                 {
@@ -189,7 +188,7 @@ namespace Playable_Piano
         }
 
 
-        internal void handleUIButtonPress(string buttonName)
+        internal void handleUIButtonPress(string buttonName, string trackName="")
         {
             switch (buttonName)
             {
@@ -198,7 +197,15 @@ namespace Playable_Piano
                     Game1.activeClickableMenu = new FreePlayUI();
                     break;
                 case ("TrackplayButton"):
+                    Game1.activeClickableMenu = new TrackSelection(this);
+                    break;
+                case ("PerformButton"):
                     currentState = State.Performance;
+                    string path = Path.Combine(Helper.DirectoryPath, "songs", trackName);
+                    FileStream abcFile = new FileStream(path, FileMode.Open);
+                    Tune tune = Tune.Load(abcFile);
+                    trackPlayer = new TrackPlayer(tune);
+                    this.Helper.Events.GameLoop.UpdateTicking += PlaySong;
                     break;
                 case ("MenuClose"):
                     currentState = State.None;

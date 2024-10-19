@@ -14,8 +14,7 @@ namespace Playable_Piano.UI
     {
         public override void draw(SpriteBatch b)
         {
-            Utility.DrawSquare(b, new Rectangle(5, 5, Game1.viewport.Width - 10, 70), 5, new Color(91, 43, 42, 255), new Color(249, 186, 102, 255));
-            Utility.drawBoldText(b, "Press Escape or Right Mousebutton to exit Freeplay Mode", Game1.smallFont, new Vector2(20, 20), Color.Black);
+            UIUtil.drawExitInstructions(b);
         }
     }
 }

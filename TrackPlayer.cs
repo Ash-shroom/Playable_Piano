@@ -96,10 +96,10 @@ namespace Playable_Piano
             {ABC.Length.Half, 30},
             {ABC.Length.Whole, 60}
         };
-        public Note(ABC.Pitch note, ABC.Accidental accidental, ABC.Length duration)
+        public Note(ABC.Note noteItem)
         {
-            Pitch = NoteToPitchMap[note] + AccidentalToPitchMap[accidental];
-            Duration = LenghtMap[duration];
+            Pitch = NoteToPitchMap[noteItem.pitch] + AccidentalToPitchMap[noteItem.accidental];
+            Duration = 2* LenghtMap[noteItem.length] + 2*(int) Math.Ceiling((float)(LenghtMap[noteItem.length] / 2 ) * noteItem.dotCount);
         }
         public Note(){
             //Invalid Note for marking the end
@@ -120,12 +120,14 @@ namespace Playable_Piano
         {
             this.title = tune.title;
             List<Note> notes = new List<Note>();
+
+            // convert ABC Notation into a List of Notes
             foreach (ABC.Item item in tune.voices[0].items)
             {
                 if (item.GetType() == typeof(ABC.Note))
                 {
                     ABC.Note NoteItem = (ABC.Note)item;
-                    notes.Add(new Note(NoteItem.pitch, NoteItem.accidental, NoteItem.length));
+                    notes.Add(new Note(NoteItem));
                 }
                 else if (item.GetType() == typeof(ABC.Chord))
                 {
@@ -133,20 +135,28 @@ namespace Playable_Piano
                     foreach (ABC.Chord.Element chordNote in chordItem.notes.Take(chordItem.notes.Length - 1))
                     {
                         // duration == 0 thus notes get played at the same time, the last note determines the lenght of the chord
-                        notes.Add(new Note(chordNote.pitch, chordNote.accidental, ABC.Length.Unknown));
+                        ABC.Note zeroLengthChordNote= new ABC.Note(chordNote.pitch, ABC.Length.Unknown, chordNote.accidental, 0);
+                        notes.Add(new Note(zeroLengthChordNote));
                     }
-                    ABC.Chord.Element lastChordNote = chordItem.notes[chordItem.notes.Length];
-                    notes.Add(new Note(lastChordNote.pitch , lastChordNote.accidental, chordItem.length));
+                    ABC.Chord.Element lastChordElement = chordItem.notes[chordItem.notes.Length];
+                    ABC.Note lastChordNote = new ABC.Note(lastChordElement.pitch,chordItem.length,lastChordElement.accidental,chordItem.dotCount);
+                    notes.Add(new Note(lastChordNote));
                 }
             }
             
-            // Terminating Note
+            // Final terminating Note
             notes.Add(new Note());
             this.currentNote = 0;
             this.notation = notes;
 
         }
 
+        /// <summary>
+        /// Gets the nextNote from the currently playing track
+        /// </summary>
+        /// <returns> A Note Object when the next Note is supposed to be played, 
+        /// or null if the last note still hasn't finished playing
+        /// </returns>
         public Note? GetNextNote()
         {
             if (remainingDuration == 0)
