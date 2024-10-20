@@ -13,7 +13,6 @@ using System.Drawing;
 using Microsoft.Xna.Framework;
 using xTile.Display;
 using Playable_Piano.UI;
-using ABC;
 using System.Linq.Expressions;
 
 namespace Playable_Piano
@@ -168,14 +167,14 @@ namespace Playable_Piano
             Note? playedNote = trackPlayer.GetNextNote();
             if (playedNote is not null)
             {
-                this.Monitor.Log($"{playedNote.Pitch} with Duration {playedNote.Duration}");
+                this.Monitor.Log($"{playedNote.pitch} with Duration {playedNote.duration}");
                 //Normal Note
-                if (playedNote.Pitch >= 0)
+                if (playedNote.pitch >= 0)
                 {
-                    Game1.currentLocation.playSound(sound, Game1.player.Tile, playedNote.Pitch);
+                    Game1.currentLocation.playSound(sound, Game1.player.Tile, playedNote.pitch);
                 }
                 //Rest
-                else if (playedNote.Duration >= 0)
+                else if (playedNote.duration >= 0)
                 {
                     return;
                 }
@@ -200,12 +199,6 @@ namespace Playable_Piano
                     Game1.activeClickableMenu = new TrackSelection(this);
                     break;
                 case ("PerformButton"):
-                    currentState = State.Performance;
-                    string path = Path.Combine(Helper.DirectoryPath, "songs", trackName);
-                    FileStream abcFile = new FileStream(path, FileMode.Open);
-                    Tune tune = Tune.Load(abcFile);
-                    trackPlayer = new TrackPlayer(tune);
-                    this.Helper.Events.GameLoop.UpdateTicking += PlaySong;
                     break;
                 case ("MenuClose"):
                     currentState = State.None;

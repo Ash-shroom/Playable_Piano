@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using StardewModdingAPI;
-using StardewValley;
 using Microsoft.Xna.Framework;
 
 namespace Playable_Piano.UI
