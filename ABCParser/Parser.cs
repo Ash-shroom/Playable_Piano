@@ -68,7 +68,12 @@ namespace Playable_Piano.ABCParser
 
         private void parseHeader() 
         {
-            List<Note> notes = new List<Note>();
+            char currentSymbol; 
+            while (symbolNr < input.Length)
+            {
+                currentSymbol = input[symbolNr];
+
+            }
         }
 
 

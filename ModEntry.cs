@@ -162,24 +162,26 @@ namespace Playable_Piano
 
         }
 
+        /// <summary>
+        /// Plays the song until the last note is received. Last note is marked by a negative Pitch
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void PlaySong(object? sender, UpdateTickingEventArgs e)
         {
             Note? playedNote = trackPlayer.GetNextNote();
             if (playedNote is not null)
             {
-                this.Monitor.Log($"{playedNote.pitch} with Duration {playedNote.duration}");
+                this.Monitor.Log($"{playedNote.pitch} with Duration {playedNote.gameTick}");
                 //Normal Note
                 if (playedNote.pitch >= 0)
                 {
                     Game1.currentLocation.playSound(sound, Game1.player.Tile, playedNote.pitch);
                 }
-                //Rest
-                else if (playedNote.duration >= 0)
-                {
-                    return;
-                }
+                //Rest Note
                 else
                 {
+                    // Song finished
                     this.Helper.Events.GameLoop.UpdateTicking -= this.PlaySong;
                     Game1.activeClickableMenu = mainMenu;
                 }
@@ -199,6 +201,16 @@ namespace Playable_Piano
                     Game1.activeClickableMenu = new TrackSelection(this);
                     break;
                 case ("PerformButton"):
+                    MidiParser.MidiFile midiFile = new MidiParser.MidiFile(Path.Combine(Helper.DirectoryPath, "songs", trackName));
+                    int trackNumber = 0;
+                    if (midiFile.TracksCount > 1)
+                    {
+                        // TODO: TrackSelection Window
+                        trackNumber = 1;
+                    }
+                    MidiConverter converter = new MidiConverter(midiFile, trackNumber);
+                    trackPlayer = new TrackPlayer(converter.convertToNotes());
+                    this.Helper.Events.GameLoop.UpdateTicking += PlaySong;
                     break;
                 case ("MenuClose"):
                     currentState = State.None;

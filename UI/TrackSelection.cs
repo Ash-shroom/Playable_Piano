@@ -40,7 +40,7 @@ namespace Playable_Piano.UI
             try
             {
                 string songFolder = Path.Combine(mainMod.Helper.DirectoryPath, "songs");
-                foreach (string song in Directory.GetFiles(songFolder, "*.abc"))
+                foreach (string song in Directory.GetFiles(songFolder, "*.mid"))
                 {
                     this.songList.Add(Path.GetFileName(song));
                 }

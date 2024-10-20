@@ -14,19 +14,14 @@ namespace Playable_Piano
    
     public class TrackPlayer
     {
-        public string title;
-
         private List<Note> notation;
-        private int currentNote;
-        private int remainingDuration = 0;
+        private int currentNote = 0;
+        private int currentTick = 0;
 
 
-        public TrackPlayer(string title, List<Note> notes)
+        public TrackPlayer(List<Note> notes)
         {
-            this.title = title;
             this.notation = notes;
-
-            
         }
 
         /// <summary>
@@ -37,17 +32,14 @@ namespace Playable_Piano
         /// </returns>
         public Note? GetNextNote()
         {
-            if (remainingDuration == 0)
+            Note? note = null;
+            if (currentTick == notation[currentNote].gameTick)
             {
-                remainingDuration = this.notation[currentNote].duration;
-                Note nextNote = this.notation[currentNote++];
-                return nextNote;
+                note = notation[currentNote];
+                currentNote++;
             }
-            else
-            {
-                remainingDuration--;
-                return null;
-            }
+            currentTick++;
+            return note;
         }
     }
 }
