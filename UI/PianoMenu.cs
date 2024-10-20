@@ -39,7 +39,7 @@ namespace Playable_Piano.UI
             //Game1.drawDialogueBox(xPos, yPos, menuWidth, menuHeight, false, true);
             drawButtons(b);
 
-            UIUtil.drawExitInstructions(b);
+            UIUtil.drawExitInstructions(b, "main");
             //ClickableComponent freePlayButton = new ClickableComponent(new Rectangle(xPos + 10, yPos + 10, 100, 50), "freeplayButton", "Button");
             drawMouse(b);
             currentlyOpen = true;
@@ -50,7 +50,7 @@ namespace Playable_Piano.UI
         {
             Buttons.Clear();
             Buttons.Add(new ClickableComponent(new Rectangle(xPos, yPos, ButtonWidth, ButtonHeight), "FreeplayButton", "Freeplay"));
-            Buttons.Add(new ClickableComponent(new Rectangle(xPos, yPos + 2 * ButtonHeight, ButtonWidth, ButtonHeight), "TrackplayButton", "Play Track"));
+            Buttons.Add(new ClickableComponent(new Rectangle(xPos, yPos + 2 * ButtonHeight, ButtonWidth, ButtonHeight), "TrackSelectionButton", "Play Track"));
         }
 
         private void drawButtons(SpriteBatch b)

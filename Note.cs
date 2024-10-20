@@ -11,6 +11,8 @@ namespace Playable_Piano
     {
         public int pitch;
         public int gameTick;
+
+        /*
         public Note(int midiNote, int Tick) 
         {
             if (midiNote < 72)
@@ -34,6 +36,20 @@ namespace Playable_Piano
             {
                 // C5--B6
                 this.pitch = (midiNote % 24) * 100;
+            }
+            this.gameTick = Tick;
+        }
+        */
+
+        public Note(int midiNote, int Tick)
+        {
+            if (midiNote == 108)
+            {
+                this.pitch = 2400;
+            }
+            else
+            {
+                this.pitch = midiNote < 0 ? -200 : (midiNote % 24) * 100;
             }
             this.gameTick = Tick;
         }

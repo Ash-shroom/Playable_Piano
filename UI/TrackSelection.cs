@@ -74,7 +74,7 @@ namespace Playable_Piano.UI
             songSelection.Clear();
             int songCountThatFits = (menuHeight - (BUTTONSIZE + 2*BORDERWIDTH + 2*BORDERMARGIN)) / ENTRYHEIGHT;
             int entryWidth = menuWidth - 2*BORDERMARGIN - 2*BORDERWIDTH;
-            maxPageNumber = (int)Math.Ceiling((double)songList.Count / songCountThatFits);
+            maxPageNumber = songList.Count / songCountThatFits;
             for (int songNr = 0; songNr < songCountThatFits; songNr++)
             {
                 if (songNr < songList.Count)
@@ -119,6 +119,8 @@ namespace Playable_Piano.UI
                     prevButton = new ClickableTextureComponent(backButtonPosition, Game1.content.Load<Texture2D>("LooseSprites\\Cursors"), new Rectangle(472, 96, 32, 32), 1);
                     prevButton.draw(b);
                 }
+                mainMod.Monitor.LogOnce("Page " + pageNumber.ToString());
+                mainMod.Monitor.LogOnce("Max " + maxPageNumber.ToString());
                 if (pageNumber != maxPageNumber)
                 {
                     Rectangle nextButtonPosition = new Rectangle(centerX + BUTTONSIZE + (BUTTONSIZE / 2), centerY, BUTTONSIZE, BUTTONSIZE);
@@ -145,9 +147,18 @@ namespace Playable_Piano.UI
                 {
                     if (song.containsPoint(x, y))
                     {
-                        mainMod.handleUIButtonPress("PerformButton", song.name);
-                        exitThisMenu();
-                        return;
+                        MidiParser.MidiFile midiFile = new MidiParser.MidiFile(Path.Combine(mainMod.Helper.DirectoryPath, "songs", song.name));
+                        if (midiFile.TracksCount > 1)
+                        {
+                            exitThisMenu();
+                            Game1.activeClickableMenu = new MidiTrackSelectionWindow(midiFile.TracksCount);
+                        }
+                        else
+                        {
+                            mainMod.handleUIButtonPress("PerformButton", song.name, 0);
+                            exitThisMenu();
+                            return;
+                        }
                     }
                 }
             }

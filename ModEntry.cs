@@ -56,6 +56,7 @@ namespace Playable_Piano
         None,
         Menu,
         Freeplay,
+        TrackSelection,
         Performance
     }
 
@@ -91,20 +92,26 @@ namespace Playable_Piano
             {
                 GameLocation location = Game1.currentLocation;
                 Farmer player = Game1.player;
+                string input = e.Button.ToString();
                 switch (currentState)
                 {
                     case (State.None):
-                        if (e.Button.ToString() == "MouseRight" || e.Button.ToString() == "Escape")
+                        // sat down at Piano
+                        if (input == "MouseRight" || input == "Escape")
                         {
                             return;
                         }
                         string? tile_name;
-                        tile_name = location.getObjectAtTile((int)player.Tile.X, (int)player.Tile.Y, true).Name;
-                        // getObjectAtTile returns null when called in the middle of sitting down/standing up
-                        if (tile_name == null)
+                        try
+                        {
+                            // getObjectAtTile returns null when called in the middle of sitting down/standing up
+                            tile_name = location.getObjectAtTile((int)player.Tile.X, (int)player.Tile.Y, true).Name;
+                        }
+                        catch (NullReferenceException)
                         {
                             return;
                         }
+
 
 
                         // check if Sound data exists for the instrument
@@ -122,11 +129,18 @@ namespace Playable_Piano
                             this.Monitor.Log($"No Sounddata found for '{tile_name}'. If it's supposed to have sound check the mod's config file", LogLevel.Debug);
                             return;
                         }
+                    case (State.TrackSelection):
+                        if (input == "MouseRight" || input == "Escape")
+                        {
+                            this.Helper.Input.Suppress(e.Button);
+                            Game1.activeClickableMenu = mainMenu;
+                            currentState = State.Menu;
+                        }
+                        break;
 
                     case (State.Freeplay):
                         ButtonToPitches played_note;
                         this.Helper.Input.Suppress(e.Button);
-                        string input = e.Button.ToString();
                         if (ButtonToPitches.TryParse(input, out played_note))  
                         {
                             int pitch = (int)played_note;
@@ -140,7 +154,9 @@ namespace Playable_Piano
                         break;
                         
                     case (State.Performance):
-                        if (e.Button.ToString() == "MouseRight")
+                        
+                        this.Helper.Input.Suppress(e.Button);
+                        if (input == "MouseRight" | input == "Escape")
                         {
                             this.Helper.Events.GameLoop.UpdateTicking -= PlaySong;
                             Game1.activeClickableMenu = mainMenu;
@@ -169,27 +185,27 @@ namespace Playable_Piano
         /// <param name="e"></param>
         private void PlaySong(object? sender, UpdateTickingEventArgs e)
         {
-            Note? playedNote = trackPlayer.GetNextNote();
-            if (playedNote is not null)
+            foreach (Note playedNote in trackPlayer.GetNextNote())
             {
-                this.Monitor.Log($"{playedNote.pitch} with Duration {playedNote.gameTick}");
+                this.Monitor.Log($"{playedNote.pitch} on Tick {playedNote.gameTick}");
                 //Normal Note
                 if (playedNote.pitch >= 0)
                 {
                     Game1.currentLocation.playSound(sound, Game1.player.Tile, playedNote.pitch);
                 }
-                //Rest Note
                 else
                 {
                     // Song finished
+                    this.Monitor.Log("finished");
                     this.Helper.Events.GameLoop.UpdateTicking -= this.PlaySong;
                     Game1.activeClickableMenu = mainMenu;
+                    currentState = State.Menu;
                 }
             }
         }
 
 
-        internal void handleUIButtonPress(string buttonName, string trackName="")
+        internal void handleUIButtonPress(string buttonName, string trackName="", int trackNumber)
         {
             switch (buttonName)
             {
@@ -197,20 +213,23 @@ namespace Playable_Piano
                     currentState = State.Freeplay;
                     Game1.activeClickableMenu = new FreePlayUI();
                     break;
-                case ("TrackplayButton"):
+                case ("TrackSelectionButton"):
+                    currentState = State.TrackSelection;
                     Game1.activeClickableMenu = new TrackSelection(this);
                     break;
                 case ("PerformButton"):
                     MidiParser.MidiFile midiFile = new MidiParser.MidiFile(Path.Combine(Helper.DirectoryPath, "songs", trackName));
-                    int trackNumber = 0;
                     if (midiFile.TracksCount > 1)
                     {
                         // TODO: TrackSelection Window
                         trackNumber = 1;
                     }
                     MidiConverter converter = new MidiConverter(midiFile, trackNumber);
-                    trackPlayer = new TrackPlayer(converter.convertToNotes());
+                    List<Note> notes = converter.convertToNotes();
+                    trackPlayer = new TrackPlayer(notes);
                     this.Helper.Events.GameLoop.UpdateTicking += PlaySong;
+                    currentState = State.Performance;
+                    Game1.activeClickableMenu = new PlaybackUI();
                     break;
                 case ("MenuClose"):
                     currentState = State.None;

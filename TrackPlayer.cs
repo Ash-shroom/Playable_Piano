@@ -25,21 +25,20 @@ namespace Playable_Piano
         }
 
         /// <summary>
-        /// Gets the nextNote from the currently playing track
+        /// Gets all Notes which are supposed to be played during the current game Tick.
         /// </summary>
-        /// <returns> A Note Object when the next Note is supposed to be played, 
-        /// or null if the last note still hasn't finished playing
+        /// <returns> A List of Note Objects.
         /// </returns>
-        public Note? GetNextNote()
+        public List<Note> GetNextNote()
         {
-            Note? note = null;
-            if (currentTick == notation[currentNote].gameTick)
+            List<Note> notes = new List<Note>();
+            while (currentTick == notation[currentNote].gameTick)
             {
-                note = notation[currentNote];
+                notes.Add(notation[currentNote]);
                 currentNote++;
             }
             currentTick++;
-            return note;
+            return notes;
         }
     }
 }

@@ -1,5 +1,6 @@
 using MidiParser;
 using StardewValley.Menus;
+using System.Runtime.ConstrainedExecution;
 namespace Playable_Piano
 {
     public class MidiConverter
@@ -26,19 +27,19 @@ namespace Playable_Piano
             {
                 foreach (MidiEvent midiEvent in track.MidiEvents)
                 {
-                    if (midiEvent.Type == (int)MetaEventType.Tempo)
+                    if (midiEvent.MetaEventType == MetaEventType.Tempo)
                     {
                         BPMIntervals.Add((midiEvent.Time, calculateTickRatio(midiEvent.Arg2)));
                     }
                 }
             }
             // in case Tempo changes are spread out between tracks
-            BPMIntervals.Sort((x,y) => {if (x.Item1 < y.Item1) {return -1;} else if (x.Item1 > y.Item1) {return -1;} else {return 0;}});
+            BPMIntervals.Sort((x,y) => {if (x.Item1 < y.Item1) {return -1;} else if (x.Item1 > y.Item1) {return 1;} else {return 0;}});
             int currentBPMInterval = 0;
             int midiTicksPerGameTick;
             if (BPMIntervals.Count > 0)
             {
-                midiTicksPerGameTick = calculateTickRatio(BPMIntervals[0].Item2);
+                midiTicksPerGameTick = BPMIntervals[0].Item2;
             } 
             else
             {
@@ -48,26 +49,37 @@ namespace Playable_Piano
             // extract note data
             foreach (MidiEvent midiEvent in midiFile.Tracks[mainTrackNumber].MidiEvents)
             {
-                MidiEventType type = (MidiEventType) midiEvent.Type;
-                if (type == MidiEventType.NoteOn)
+                if (midiEvent.MidiEventType == MidiEventType.NoteOn)
                 {
                     // if current Note in new BPM Interval         AND note is played after next Interval starts
                     if (currentBPMInterval + 1 < BPMIntervals.Count && BPMIntervals[currentBPMInterval+1].Item1 < midiEvent.Time)
                     {
                         currentBPMInterval++;
-                        midiTicksPerGameTick = calculateTickRatio(BPMIntervals[currentBPMInterval].Item2);
+                        midiTicksPerGameTick = BPMIntervals[currentBPMInterval].Item2;
                     }
-                    notes.Add(new Note(midiEvent.Arg2, midiEvent.Time * midiTicksPerGameTick));
+                    notes.Add(new Note(midiEvent.Arg2, midiEvent.Time / midiTicksPerGameTick));
+                    /*
+                    Console.WriteLine("MidiTime: " + midiEvent.Time);
+                    Console.WriteLine("Ratio: " + midiTicksPerGameTick);
+                    Console.WriteLine("Converted Time: " + (midiEvent.Time / midiTicksPerGameTick).ToString());
+                    Console.WriteLine("");
+                    */
                 }
             }
+            notes.Sort((x, y) => { if (x.gameTick < y.gameTick) { return -1; } else if (x.gameTick > y.gameTick) { return 1; } else { return 0; } });
 
-            notes.Add(new Note(-200,notes.Last().gameTick + 1));
+            // negative Note Pitch marks end of song,
+            // during Playback for each played Note the Index gets incremented, and checked if it should be played (chords)
+            // this causes an IndexOutOfBound on the last note, when only one End Note is existant
+            notes.Add(new Note(-200,notes.Last().gameTick + 10));
+            notes.Add(new Note(-200, notes.Last().gameTick + 10));
             return notes;
         }
 
         private int calculateTickRatio(int BPM)
         {
-            return BPM * TicksPerQuarterNote / 3600;
+            int ratio = BPM * TicksPerQuarterNote / 3600;
+            return ratio;
         }
 
     }
