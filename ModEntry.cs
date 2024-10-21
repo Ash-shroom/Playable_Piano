@@ -126,7 +126,7 @@ namespace Playable_Piano
                         }
                         else
                         {
-                            this.Monitor.Log($"No Sounddata found for '{tile_name}'. If it's supposed to have sound check the mod's config file", LogLevel.Debug);
+                            this.Monitor.LogOnce($"No Sounddata found for '{tile_name}'. If it's supposed to have sound check the mod's config file", LogLevel.Debug);
                             return;
                         }
                     case (State.TrackSelection):
