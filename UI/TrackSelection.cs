@@ -120,8 +120,6 @@ namespace Playable_Piano.UI
                     prevButton = new ClickableTextureComponent(backButtonPosition, Game1.content.Load<Texture2D>("LooseSprites\\Cursors"), new Rectangle(472, 96, 32, 32), 1);
                     prevButton.draw(b);
                 }
-                mainMod.Monitor.LogOnce("Page " + pageNumber.ToString());
-                mainMod.Monitor.LogOnce("Max " + maxPageNumber.ToString());
                 if (pageNumber != maxPageNumber)
                 {
                     Rectangle nextButtonPosition = new Rectangle(centerX + BUTTONSIZE + (BUTTONSIZE / 2), centerY, BUTTONSIZE, BUTTONSIZE);

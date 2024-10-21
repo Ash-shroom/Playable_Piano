@@ -87,7 +87,6 @@ namespace Playable_Piano.UI
                 {
                     wrappedString = wrappedString + " " + word;
                 }
-                mainMod.Monitor.LogOnce(Game1.smallFont.MeasureString(wrappedString).X.ToString());
             }
             return wrappedString.Remove(0, 1); // remove first whitespace;
         }
