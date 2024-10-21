@@ -47,23 +47,51 @@ namespace Playable_Piano
             }
 
             // extract note data
-            foreach (MidiEvent midiEvent in midiFile.Tracks[mainTrackNumber].MidiEvents)
+            if (mainTrackNumber == -1)
             {
-                if (midiEvent.MidiEventType == MidiEventType.NoteOn)
+                foreach (MidiTrack track in midiFile.Tracks)
                 {
-                    // if current Note in new BPM Interval         AND note is played after next Interval starts
-                    if (currentBPMInterval + 1 < BPMIntervals.Count && BPMIntervals[currentBPMInterval+1].Item1 < midiEvent.Time)
+                    foreach (MidiEvent midiEvent in track.MidiEvents) 
                     {
-                        currentBPMInterval++;
-                        midiTicksPerGameTick = BPMIntervals[currentBPMInterval].Item2;
+                        if (midiEvent.MidiEventType == MidiEventType.NoteOn)
+                        {
+                            // if current Note in new BPM Interval         AND note is played after next Interval starts
+                            if (currentBPMInterval + 1 < BPMIntervals.Count && BPMIntervals[currentBPMInterval+1].Item1 < midiEvent.Time)
+                            {
+                                currentBPMInterval++;
+                                midiTicksPerGameTick = BPMIntervals[currentBPMInterval].Item2;
+                            }
+                            notes.Add(new Note(midiEvent.Arg2, midiEvent.Time / midiTicksPerGameTick));
+                            /*
+                            Console.WriteLine("MidiTime: " + midiEvent.Time);
+                            Console.WriteLine("Ratio: " + midiTicksPerGameTick);
+                            Console.WriteLine("Converted Time: " + (midiEvent.Time / midiTicksPerGameTick).ToString());
+                            Console.WriteLine("");
+                            */
+                        }
                     }
-                    notes.Add(new Note(midiEvent.Arg2, midiEvent.Time / midiTicksPerGameTick));
-                    /*
-                    Console.WriteLine("MidiTime: " + midiEvent.Time);
-                    Console.WriteLine("Ratio: " + midiTicksPerGameTick);
-                    Console.WriteLine("Converted Time: " + (midiEvent.Time / midiTicksPerGameTick).ToString());
-                    Console.WriteLine("");
-                    */
+                }
+            }
+            else
+            {
+                foreach (MidiEvent midiEvent in midiFile.Tracks[mainTrackNumber].MidiEvents) 
+                {
+                    if (midiEvent.MidiEventType == MidiEventType.NoteOn)
+                    {
+                        // if current Note in new BPM Interval         AND note is played after next Interval starts
+                        if (currentBPMInterval + 1 < BPMIntervals.Count && BPMIntervals[currentBPMInterval+1].Item1 < midiEvent.Time)
+                        {
+                            currentBPMInterval++;
+                            midiTicksPerGameTick = BPMIntervals[currentBPMInterval].Item2;
+                        }
+                        notes.Add(new Note(midiEvent.Arg2, midiEvent.Time / midiTicksPerGameTick));
+                        /*
+                        Console.WriteLine("MidiTime: " + midiEvent.Time);
+                        Console.WriteLine("Ratio: " + midiTicksPerGameTick);
+                        Console.WriteLine("Converted Time: " + (midiEvent.Time / midiTicksPerGameTick).ToString());
+                        Console.WriteLine("");
+                        */
+                    }
                 }
             }
             notes.Sort((x, y) => { if (x.gameTick < y.gameTick) { return -1; } else if (x.gameTick > y.gameTick) { return 1; } else { return 0; } });

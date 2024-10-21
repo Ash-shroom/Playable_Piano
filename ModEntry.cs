@@ -75,7 +75,7 @@ namespace Playable_Piano
             this.instrumentSoundData = helper.ReadConfig<ModConfig>().InstrumentData;
             if (this.instrumentSoundData == null)
             {
-                this.Monitor.Log("Could not load Instrument Data, check whether the config file exists.", LogLevel.Error);
+                this.Monitor.Log("Could not load Instrument Data, check whether the Mods config.json exists.", LogLevel.Error);
                 return;
             }
             this.Monitor.Log($"Loaded Instruments:\n{string.Join("\n", this.instrumentSoundData.Select(pair => $"\t{pair.Key} : {pair.Value}"))}", LogLevel.Debug);
@@ -218,7 +218,7 @@ namespace Playable_Piano
                     Game1.activeClickableMenu = new TrackSelection(this);
                     break;
                 case ("PerformButton"):
-                    MidiParser.MidiFile midiFile = new MidiParser.MidiFile(Path.Combine(Helper.DirectoryPath, "songs", trackName));
+                    MidiParser.MidiFile midiFile = new MidiParser.MidiFile(Path.Combine(Helper.DirectoryPath, "songs", trackName));                    
                     MidiConverter converter = new MidiConverter(midiFile, trackNumber);
                     List<Note> notes = converter.convertToNotes();
                     trackPlayer = new TrackPlayer(notes);

@@ -45,6 +45,7 @@ namespace Playable_Piano.UI
             {
                 trackSelection.Add(new ClickableComponent(new Rectangle(WINDOWMARGINX + BORDERMARGIN + BORDERWIDTH, WINDOWMARGINY + BORDERMARGIN + BORDERWIDTH + (int) Game1.smallFont.MeasureString(wrappedString).Y + ENTRYHEIGHT * (trackNumber ), Game1.viewport.Width / 4 - 2 * (BORDERWIDTH + BORDERMARGIN), ENTRYHEIGHT),trackNumber.ToString(),$"Track {trackNumber.ToString()}"));
             }
+            trackSelection.Add(new ClickableComponent(new Rectangle(WINDOWMARGINX + BORDERMARGIN + BORDERWIDTH, WINDOWMARGINY + BORDERMARGIN + BORDERWIDTH + (int) Game1.smallFont.MeasureString(wrappedString).Y + ENTRYHEIGHT * (trackSelection.Count ), Game1.viewport.Width / 4 - 2 * (BORDERWIDTH + BORDERMARGIN), ENTRYHEIGHT), "-1", "All Tracks"));
             foreach (ClickableComponent track in trackSelection)
             {
                 ICursorPosition cursorpos = mainMod.Helper.Input.GetCursorPosition();
