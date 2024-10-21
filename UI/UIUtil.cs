@@ -18,7 +18,7 @@ namespace Playable_Piano.UI
 
         public static void drawExitInstructions(SpriteBatch b, string menu = "")
         {
-            Utility.DrawSquare(b, new Rectangle(5, 5, Game1.viewport.Width - 10, 70), 5, borderColor, backgroundColor);
+            Utility.DrawSquare(b, new Rectangle(5, 5, Game1.viewport.Width - 20, 70), 5, borderColor, backgroundColor);
             if (menu == "main")
             {
                 Utility.drawBoldText(b, "Press Escape or Right Mousebutton to close this menu", Game1.smallFont, new Vector2(20, 20), Color.Black);

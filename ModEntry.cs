@@ -205,7 +205,7 @@ namespace Playable_Piano
         }
 
 
-        internal void handleUIButtonPress(string buttonName, string trackName="", int trackNumber)
+        internal void handleUIButtonPress(string buttonName, int trackNumber = 0, string trackName = "")
         {
             switch (buttonName)
             {
@@ -219,11 +219,6 @@ namespace Playable_Piano
                     break;
                 case ("PerformButton"):
                     MidiParser.MidiFile midiFile = new MidiParser.MidiFile(Path.Combine(Helper.DirectoryPath, "songs", trackName));
-                    if (midiFile.TracksCount > 1)
-                    {
-                        // TODO: TrackSelection Window
-                        trackNumber = 1;
-                    }
                     MidiConverter converter = new MidiConverter(midiFile, trackNumber);
                     List<Note> notes = converter.convertToNotes();
                     trackPlayer = new TrackPlayer(notes);

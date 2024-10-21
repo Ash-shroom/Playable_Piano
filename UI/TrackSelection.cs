@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Media;
+using MidiParser;
 
 namespace Playable_Piano.UI
 {
@@ -148,14 +149,30 @@ namespace Playable_Piano.UI
                     if (song.containsPoint(x, y))
                     {
                         MidiParser.MidiFile midiFile = new MidiParser.MidiFile(Path.Combine(mainMod.Helper.DirectoryPath, "songs", song.name));
-                        if (midiFile.TracksCount > 1)
+                        List<int> tracksWithNotes = new List<int>();
+                        foreach (MidiTrack midiTrack in midiFile.Tracks)
+                        {
+                            foreach (MidiEvent mEvent in midiTrack.MidiEvents)
+                            {
+                                if (mEvent.MidiEventType == MidiEventType.NoteOn)
+                                {
+                                    tracksWithNotes.Add(midiTrack.Index);
+                                }
+                                else
+                                {
+                                    continue;
+                                }
+                                break;
+                            }
+                        }
+                        if (tracksWithNotes.Count > 1)
                         {
                             exitThisMenu();
-                            Game1.activeClickableMenu = new MidiTrackSelectionWindow(midiFile.TracksCount);
+                            Game1.activeClickableMenu = new MidiTrackSelectionWindow(mainMod, song.name, tracksWithNotes);
                         }
                         else
                         {
-                            mainMod.handleUIButtonPress("PerformButton", song.name, 0);
+                            mainMod.handleUIButtonPress("PerformButton", tracksWithNotes[0], song.name);
                             exitThisMenu();
                             return;
                         }

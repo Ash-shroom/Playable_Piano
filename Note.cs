@@ -43,8 +43,9 @@ namespace Playable_Piano
 
         public Note(int midiNote, int Tick)
         {
-            if (midiNote == 108)
+            if (midiNote == 96)
             {
+                Console.WriteLine(midiNote.ToString());
                 this.pitch = 2400;
             }
             else
