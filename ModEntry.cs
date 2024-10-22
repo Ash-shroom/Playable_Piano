@@ -17,37 +17,7 @@ using System.Linq.Expressions;
 
 namespace Playable_Piano
 {
-    enum ButtonToPitches : int
-    {
-        // lower Octave
-        Z = 0,
-        S = 100,
-        X = 200,
-        D = 300,
-        C = 400,
-        V = 500,
-        G = 600,
-        B = 700,
-        H = 800,
-        N = 900,
-        J = 1000,
-        M = 1100,
-
-        // uppper Octave
-        Q = 1200,
-        D2 = 1300,
-        W = 1400,
-        D3 = 1500,
-        E = 1600,
-        R = 1700,
-        D5 = 1800,
-        T = 1900,
-        D6 = 2000,
-        Y = 2100,
-        D7 = 2200,
-        U = 2300,
-        I = 2400
-    }
+    
 
    
 
@@ -62,11 +32,9 @@ namespace Playable_Piano
 
     internal sealed class PlayablePiano : Mod
     {
-        private Dictionary<string, string>? instrumentSoundData;
-        private State currentState = State.None;
-        private string sound = "toyPiano";
-        private PianoMenu? mainMenu;
-        private TrackPlayer? trackPlayer;
+        private Dictionary<string, string> instrumentSoundData = new Dictionary<string, string>();
+        private bool atPiano = false;
+        private IBaseUI? activeMenu;
 
 
 
@@ -79,7 +47,6 @@ namespace Playable_Piano
                 return;
             }
             this.Monitor.Log($"Loaded Instruments:\n{string.Join("\n", this.instrumentSoundData.Select(pair => $"\t{pair.Key} : {pair.Value}"))}", LogLevel.Debug);
-            mainMenu = new PianoMenu(this);
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
         }
 
@@ -90,45 +57,52 @@ namespace Playable_Piano
                 return;
             if (Game1.player.IsSitting())
             {
-                GameLocation location = Game1.currentLocation;
-                Farmer player = Game1.player;
                 string input = e.Button.ToString();
-                switch (currentState)
+                if (atPiano && activeMenu is not null)
                 {
-                    case (State.None):
-                        // sat down at Piano
-                        if (input == "MouseRight" || input == "Escape")
-                        {
-                            return;
-                        }
-                        string? tile_name;
-                        try
-                        {
-                            // getObjectAtTile returns null when called in the middle of sitting down/standing up
-                            tile_name = location.getObjectAtTile((int)player.Tile.X, (int)player.Tile.Y, true).Name;
-                        }
-                        catch (NullReferenceException)
-                        {
-                            return;
-                        }
+                    this.Helper.Input.Suppress(e.Button);
+                    activeMenu.handleButton(e.Button);
+                }
+                else
+                {
+                    // Leaving Piano/Furniture without opening Menu
+                    if (input == "MouseRight" || input == "Escape")
+                    {
+                        return;
+                    }
+
+                    GameLocation location = Game1.currentLocation;
+                    Farmer player = Game1.player;
+
+                    string tile_name;
+                    // sat down at Piano
+                    try
+                    {
+                        // getObjectAtTile returns null when called in the middle of sitting down/standing up
+                        tile_name = location.getObjectAtTile((int)player.Tile.X, (int)player.Tile.Y, true).Name;
+                    }
+                    catch (NullReferenceException)
+                    {
+                        return;
+                    }
 
 
-
-                        // check if Sound data exists for the instrument
-                        // On ModEntry instrumentSoundData gets checked for a null value
-                        // if it is, the Mod doesn't load, the Null Dereference warning can thus be ignored
-                        if (instrumentSoundData.ContainsKey(tile_name))
-                        {
-                            sound = instrumentSoundData[tile_name];
-                            Game1.activeClickableMenu = mainMenu;
-                            currentState = State.Menu;
-                            break;
-                        }
-                        else
-                        {
-                            this.Monitor.LogOnce($"No Sounddata found for '{tile_name}'. If it's supposed to have sound check the mod's config file", LogLevel.Debug);
-                            return;
-                        }
+                    // check if Sound data exists for the instrument
+                    if (instrumentSoundData.ContainsKey(tile_name))
+                    {
+                        string sound = instrumentSoundData[tile_name];
+                        MainMenu pianoMenu = new MainMenu(this, sound);
+                        activeMenu = pianoMenu;
+                        Game1.activeClickableMenu = pianoMenu;
+                        atPiano = true;
+                    }
+                    else
+                    {
+                        this.Monitor.LogOnce($"No Sounddata found for '{tile_name}'. If it's supposed to have sound check the mod's config file", LogLevel.Debug);
+                        return;
+                    }
+                }
+                        
                     case (State.TrackSelection):
                         if (input == "MouseRight" || input == "Escape")
                         {
@@ -139,18 +113,7 @@ namespace Playable_Piano
                         break;
 
                     case (State.Freeplay):
-                        ButtonToPitches played_note;
-                        this.Helper.Input.Suppress(e.Button);
-                        if (ButtonToPitches.TryParse(input, out played_note))  
-                        {
-                            int pitch = (int)played_note;
-                            location.playSound(sound, player.Tile, pitch);
-                        }
-                        else if (input == "MouseRight" || input == "Escape")
-                        {
-                            Game1.activeClickableMenu = mainMenu;
-                            currentState = State.Menu;
-                        }
+                        activeMenu.handleButton(e.Button);
                         break;
                         
                     case (State.Performance):
@@ -230,6 +193,11 @@ namespace Playable_Piano
                     currentState = State.None;
                     break;
             }
+        }
+
+        public void setActiveMenu(IBaseUI? newMenu)
+        {
+            this.activeMenu = newMenu;
         }
     }
 }
