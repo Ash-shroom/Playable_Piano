@@ -14,7 +14,7 @@ using StardewModdingAPI;
 
 namespace Playable_Piano.UI
 {
-    internal class MidiTrackSelectionWindow : IClickableMenu
+    internal class MidiTrackSelectionWindow : BaseUI
     {
         private const int BORDERWIDTH = 5;
         private const int BORDERMARGIN = 5;
@@ -22,14 +22,15 @@ namespace Playable_Piano.UI
         private const int WINDOWMARGINX = 50;
         private const int WINDOWMARGINY = 100;
 
-        private PlayablePiano mainMod;
-        private string trackName;
+        protected override PlayablePiano mainMod { get; set; }
+
+        private string songFileName;
         private List<ClickableComponent> trackSelection = new List<ClickableComponent>();
         private List<int> tracksWithNotes;
-        public MidiTrackSelectionWindow(PlayablePiano mainMod, string trackName, List<int> tracksWithNotes)
+        public MidiTrackSelectionWindow(PlayablePiano mod, string fileName, List<int> tracksWithNotes)
         {
-            this.mainMod = mainMod;
-            this.trackName = trackName;
+            mainMod = mod;
+            this.songFileName = fileName;
             this.tracksWithNotes = tracksWithNotes;
         }
 
@@ -41,11 +42,12 @@ namespace Playable_Piano.UI
             string wrappedString = wrapString("This MIDI contains multiple Instrument Tracks, select one", (Game1.viewport.Width / 4) - 2* (BORDERWIDTH + BORDERMARGIN));
             Utility.drawBoldText(b, wrappedString, Game1.smallFont, new Vector2(WINDOWMARGINX + BORDERMARGIN + BORDERWIDTH, WINDOWMARGINY + BORDERMARGIN + BORDERWIDTH), Color.Black);
             trackSelection.Clear();
-            foreach (int trackNumber in tracksWithNotes)
+            for (int trackNumber = 0; trackNumber < tracksWithNotes.Count; trackNumber++)
             {
-                trackSelection.Add(new ClickableComponent(new Rectangle(WINDOWMARGINX + BORDERMARGIN + BORDERWIDTH, WINDOWMARGINY + BORDERMARGIN + BORDERWIDTH + (int) Game1.smallFont.MeasureString(wrappedString).Y + ENTRYHEIGHT * (trackNumber ), Game1.viewport.Width / 4 - 2 * (BORDERWIDTH + BORDERMARGIN), ENTRYHEIGHT),trackNumber.ToString(),$"Track {trackNumber.ToString()}"));
+                // track.name == Track Number
+                trackSelection.Add(new ClickableComponent(new Rectangle(WINDOWMARGINX + BORDERMARGIN + BORDERWIDTH, WINDOWMARGINY + BORDERMARGIN + BORDERWIDTH + (int) Game1.smallFont.MeasureString(wrappedString).Y + ENTRYHEIGHT * trackNumber , Game1.viewport.Width / 4 - 2 * (BORDERWIDTH + BORDERMARGIN), ENTRYHEIGHT),tracksWithNotes[trackNumber].ToString(),$"Track {tracksWithNotes[trackNumber]}"));
             }
-            trackSelection.Add(new ClickableComponent(new Rectangle(WINDOWMARGINX + BORDERMARGIN + BORDERWIDTH, WINDOWMARGINY + BORDERMARGIN + BORDERWIDTH + (int) Game1.smallFont.MeasureString(wrappedString).Y + ENTRYHEIGHT * (trackSelection.Count +1 ), Game1.viewport.Width / 4 - 2 * (BORDERWIDTH + BORDERMARGIN), ENTRYHEIGHT), "-1", "All Tracks"));
+            trackSelection.Add(new ClickableComponent(new Rectangle(WINDOWMARGINX + BORDERMARGIN + BORDERWIDTH, WINDOWMARGINY + BORDERMARGIN + BORDERWIDTH + (int) Game1.smallFont.MeasureString(wrappedString).Y + ENTRYHEIGHT * tracksWithNotes.Count, Game1.viewport.Width / 4 - 2 * (BORDERWIDTH + BORDERMARGIN), ENTRYHEIGHT), "-1", "All Tracks"));
             foreach (ClickableComponent track in trackSelection)
             {
                 ICursorPosition cursorpos = mainMod.Helper.Input.GetCursorPosition();
@@ -64,10 +66,12 @@ namespace Playable_Piano.UI
         {
             foreach (ClickableComponent track in trackSelection)
             {
+                // track.name = Track Number
                 if (track.containsPoint(x, y))
                 {
-                    mainMod.handleUIButtonPress("PerformButton", Int32.Parse(track.name), trackName);
                     exitThisMenu();
+                    PlaybackUI menu = new PlaybackUI(mainMod, songFileName, Int32.Parse(track.name));
+                    mainMod.setActiveMenu(menu);
                     return;
                 }
             }
@@ -89,6 +93,18 @@ namespace Playable_Piano.UI
                 }
             }
             return wrappedString.Remove(0, 1); // remove first whitespace;
+        }
+
+        public override void handleButton(SButton button)
+        {
+            string input = button.ToString();
+            if (input == "Escape" || input == "MouseRight")
+            {
+                mainMod.Helper.Input.Suppress(button);
+                exitThisMenu();
+                TrackSelection menu = new TrackSelection(mainMod);
+                mainMod.setActiveMenu(menu);
+            }
         }
 
 

@@ -17,6 +17,7 @@ namespace Playable_Piano
         private List<Note> notation;
         private int currentNote = 0;
         private int currentTick = 0;
+        
 
 
         public TrackPlayer(List<Note> notes)
@@ -26,6 +27,7 @@ namespace Playable_Piano
 
         /// <summary>
         /// Gets all Notes which are supposed to be played during the current game Tick.
+        /// If no note is to be played on the current Game Tick an empty list gets returned.
         /// </summary>
         /// <returns> A List of Note Objects.
         /// </returns>

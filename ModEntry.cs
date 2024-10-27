@@ -34,17 +34,18 @@ namespace Playable_Piano
     {
         private Dictionary<string, string> instrumentSoundData = new Dictionary<string, string>();
         private bool atPiano = false;
-        private IBaseUI? activeMenu;
+        private BaseUI? activeMenu;
+        public string sound = "toyPiano"; // Fallback Option
 
 
 
         public override void Entry(IModHelper helper)
         {
-            this.instrumentSoundData = helper.ReadConfig<ModConfig>().InstrumentData;
+            this.instrumentSoundData = helper.ReadConfig<ModConfig>().InstrumentData;   
             if (this.instrumentSoundData == null)
             {
-                this.Monitor.Log("Could not load Instrument Data, check whether the Mods config.json exists.", LogLevel.Error);
-                return;
+                this.Monitor.Log("Could not load Instrument Data, check whether the Mods config.json exists and file permissions.Using fallback Option", LogLevel.Warn);
+                this.instrumentSoundData = new Dictionary<string, string>{{"Dark Piano", "toyPiano"}, {"UprightPiano", "toyPiano"}};
             }
             this.Monitor.Log($"Loaded Instruments:\n{string.Join("\n", this.instrumentSoundData.Select(pair => $"\t{pair.Key} : {pair.Value}"))}", LogLevel.Debug);
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
@@ -60,7 +61,6 @@ namespace Playable_Piano
                 string input = e.Button.ToString();
                 if (atPiano && activeMenu is not null)
                 {
-                    this.Helper.Input.Suppress(e.Button);
                     activeMenu.handleButton(e.Button);
                 }
                 else
@@ -90,8 +90,9 @@ namespace Playable_Piano
                     // check if Sound data exists for the instrument
                     if (instrumentSoundData.ContainsKey(tile_name))
                     {
-                        string sound = instrumentSoundData[tile_name];
-                        MainMenu pianoMenu = new MainMenu(this, sound);
+                        // open main Piano Menu
+                        sound = instrumentSoundData[tile_name];
+                        MainMenu pianoMenu = new MainMenu(this);
                         activeMenu = pianoMenu;
                         Game1.activeClickableMenu = pianoMenu;
                         atPiano = true;
@@ -102,102 +103,21 @@ namespace Playable_Piano
                         return;
                     }
                 }
-                        
-                    case (State.TrackSelection):
-                        if (input == "MouseRight" || input == "Escape")
-                        {
-                            this.Helper.Input.Suppress(e.Button);
-                            Game1.activeClickableMenu = mainMenu;
-                            currentState = State.Menu;
-                        }
-                        break;
-
-                    case (State.Freeplay):
-                        activeMenu.handleButton(e.Button);
-                        break;
-                        
-                    case (State.Performance):
-                        
-                        this.Helper.Input.Suppress(e.Button);
-                        if (input == "MouseRight" | input == "Escape")
-                        {
-                            this.Helper.Events.GameLoop.UpdateTicking -= PlaySong;
-                            Game1.activeClickableMenu = mainMenu;
-                            currentState = State.Menu;
-                            break;
-                        }       
-                        break;
-
-                    case (State.Menu):
-                        // while in Menu do nothing
-                        break;
-                }
             }
             else
             {
-                // when the player stands up, always return to default state None
-                currentState = State.None;
+                atPiano = false;
             }
 
         }
 
-        /// <summary>
-        /// Plays the song until the last note is received. Last note is marked by a negative Pitch
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void PlaySong(object? sender, UpdateTickingEventArgs e)
-        {
-            foreach (Note playedNote in trackPlayer.GetNextNote())
-            {
-                this.Monitor.Log($"{playedNote.pitch} on Tick {playedNote.gameTick}");
-                //Normal Note
-                if (playedNote.pitch >= 0)
-                {
-                    Game1.currentLocation.playSound(sound, Game1.player.Tile, playedNote.pitch);
-                }
-                else
-                {
-                    // Song finished
-                    this.Monitor.Log("finished");
-                    this.Helper.Events.GameLoop.UpdateTicking -= this.PlaySong;
-                    Game1.activeClickableMenu = mainMenu;
-                    currentState = State.Menu;
-                }
-            }
-        }
-
-
-        internal void handleUIButtonPress(string buttonName, int trackNumber = 0, string trackName = "")
-        {
-            switch (buttonName)
-            {
-                case ("FreeplayButton"):
-                    currentState = State.Freeplay;
-                    Game1.activeClickableMenu = new FreePlayUI();
-                    break;
-                case ("TrackSelectionButton"):
-                    currentState = State.TrackSelection;
-                    Game1.activeClickableMenu = new TrackSelection(this);
-                    break;
-                case ("PerformButton"):
-                    MidiParser.MidiFile midiFile = new MidiParser.MidiFile(Path.Combine(Helper.DirectoryPath, "songs", trackName));                    
-                    MidiConverter converter = new MidiConverter(midiFile, trackNumber);
-                    List<Note> notes = converter.convertToNotes();
-                    trackPlayer = new TrackPlayer(notes);
-                    this.Helper.Events.GameLoop.UpdateTicking += PlaySong;
-                    currentState = State.Performance;
-                    Game1.activeClickableMenu = new PlaybackUI();
-                    break;
-                case ("MenuClose"):
-                    currentState = State.None;
-                    break;
-            }
-        }
-
-        public void setActiveMenu(IBaseUI? newMenu)
+        public void setActiveMenu(BaseUI? newMenu)
         {
             this.activeMenu = newMenu;
+            if (newMenu is not null)
+            {
+                Game1.activeClickableMenu = newMenu;
+            }
         }
     }
 }

@@ -45,12 +45,14 @@ namespace Playable_Piano.UI
             I = 2400
         }
 
+        private string sound;
+        protected override PlayablePiano mainMod { get; set; }
         
 
-        public FreePlayUI(PlayablePiano mod, string sound)
+        public FreePlayUI(PlayablePiano mod)
         {
-            this.mainMod = mod;
-            this.sound = sound;
+            mainMod = mod;
+            this.sound = mainMod.sound;
         }
 
         public override void draw(SpriteBatch b)
@@ -61,11 +63,12 @@ namespace Playable_Piano.UI
 
         public override void  handleButton(SButton button)
         {
-            string input = button.ToString();
             mainMod.Helper.Input.Suppress(button);
-            int playedPitch;
-            if (ButtonToPitches.TryParse(input, out playedPitch))
+            string input = button.ToString();
+            ButtonToPitches playedNote;
+            if (ButtonToPitches.TryParse(input, out playedNote))
             {
+                int playedPitch = (int) playedNote;
                 GameLocation location = Game1.currentLocation;
                 Vector2 tileCords = Game1.player.Tile;
                 location.playSound(sound, tileCords, playedPitch);
@@ -73,10 +76,8 @@ namespace Playable_Piano.UI
             else if (input == "MouseRight" || input == "Escape")
             {
                 exitThisMenu();
-                MainMenu menu = new MainMenu(mainMod, sound);
-                Game1.activeClickableMenu = menu;
+                MainMenu menu = new MainMenu(mainMod);
                 mainMod.setActiveMenu(menu);
-
             }
         }
 

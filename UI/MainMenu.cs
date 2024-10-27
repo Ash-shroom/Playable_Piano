@@ -15,21 +15,18 @@ using StardewModdingAPI;
 namespace Playable_Piano.UI
 {
 
-    internal sealed class MainMenu : IClickableMenu, IBaseUI
+    internal sealed class MainMenu : BaseUI
     {
-
-        const int BUTTONWIDTH = 200;
-        const int BUTTONHEIGHT = 50;
+        protected override PlayablePiano mainMod { get; set; }
+        const int BUTTONWIDTH = 250;
+        const int BUTTONHEIGHT = 70;
         const int BUTTONMARGIN = 10;
-        ClickableComponent freePlayButton = new ClickableComponent(new Rectangle(Game1.viewport.Width/2, Game1.viewport.Height/2, BUTTONWIDTH, BUTTONHEIGHT), "FreeplayButton", "Freeplay");
-        ClickableComponent? trackPlayButton = new ClickableComponent(new Rectangle(Game1.viewport.Width/2, Game1.viewport.Height/2 + 2 * BUTTONHEIGHT, BUTTONWIDTH, BUTTONHEIGHT), "TrackSelectionButton", "Play Track");
-        private string sound;
-        private PlayablePiano mainMod;
+        ClickableComponent freePlayButton = new ClickableComponent(new Rectangle(Game1.viewport.Width/2 - BUTTONWIDTH/2 - 2*BUTTONMARGIN, Game1.viewport.Height/2, BUTTONWIDTH, BUTTONHEIGHT), "FreeplayButton", "Freeplay");
+        ClickableComponent trackPlayButton = new ClickableComponent(new Rectangle(Game1.viewport.Width/2 - BUTTONWIDTH/2 - 2*BUTTONMARGIN, Game1.viewport.Height/2 + 2 * BUTTONHEIGHT, BUTTONWIDTH, BUTTONHEIGHT), "TrackSelectionButton", "Play Track");
 
-        public MainMenu(PlayablePiano mod, string sound)
+        public MainMenu(PlayablePiano mod)
         {
-            this.mainMod = mod;
-            this.sound = sound;
+            mainMod = mod;
         }
 
         //128 384 Sprite Pos Music note
@@ -39,7 +36,6 @@ namespace Playable_Piano.UI
             int xPos = Game1.viewport.Width / 2 - BUTTONWIDTH / 2;
             int yPos = Game1.viewport.Height / 2 - 2 * BUTTONHEIGHT;
             drawButtons(b, xPos, yPos);
-
             UIUtil.drawExitInstructions(b, "main");
             //ClickableComponent freePlayButton = new ClickableComponent(new Rectangle(xPos + 10, yPos + 10, 100, 50), "freeplayButton", "Button");
             drawMouse(b);
@@ -49,8 +45,8 @@ namespace Playable_Piano.UI
 
         private void drawButtons(SpriteBatch b, int xPos, int yPos)
         {
-            ClickableComponent freePlayButton = new ClickableComponent(new Rectangle(xPos, yPos, BUTTONWIDTH, BUTTONHEIGHT), "FreeplayButton", "Freeplay");
-            ClickableComponent trackPlayButton = new ClickableComponent(new Rectangle(xPos, yPos + 2 * BUTTONHEIGHT, BUTTONWIDTH, BUTTONHEIGHT), "TrackSelectionButton", "Play Track");
+            freePlayButton = new ClickableComponent(new Rectangle(xPos, yPos, BUTTONWIDTH, BUTTONHEIGHT), "FreeplayButton", "Freeplay");
+            trackPlayButton = new ClickableComponent(new Rectangle(xPos, yPos + 2 * BUTTONHEIGHT, BUTTONWIDTH, BUTTONHEIGHT), "TrackSelectionButton", "Play Track");
             
             // Button Background
             Utility.DrawSquare(b, freePlayButton.bounds, 5, UIUtil.borderColor, UIUtil.backgroundColor);
@@ -65,16 +61,26 @@ namespace Playable_Piano.UI
             if (freePlayButton.containsPoint(x,y))
             {
                 exitThisMenu();
-                FreePlayUI menu = new FreePlayUI(mainMod, sound);
-                Game1.activeClickableMenu = ;
+                FreePlayUI menu = new FreePlayUI(mainMod);
+                mainMod.setActiveMenu(menu);
             }
             else if (trackPlayButton.containsPoint(x,y))
             {
+                exitThisMenu();
+                TrackSelection menu = new TrackSelection(mainMod);
+                mainMod.setActiveMenu(menu);
             }
         }
 
-        public void handleButton(SButton button)
+        public override void handleButton(SButton button)
         {
+
+            if (button.ToString() == "Escape")
+            {
+                mainMod.Helper.Input.Suppress(button);
+                exitThisMenu();
+                mainMod.setActiveMenu(null);
+            }
         }
 
         public override void receiveRightClick(int x, int y, bool playSound = true)

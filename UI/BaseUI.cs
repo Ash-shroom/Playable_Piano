@@ -10,27 +10,8 @@ namespace Playable_Piano.UI
 {
     internal abstract class BaseUI : IClickableMenu
     {
-        protected PlayablePiano mainMod 
-        { 
-            get
-            {
-                return mainMod;
-            }
-            set
-            {
-                mainMod = value;
-            }
-        }
-        protected string sound 
-        {
-            get
-            {
-                return sound;
-            }
-            set
-            {
-                sound = value;
-            }
+        protected abstract PlayablePiano mainMod {
+            get; set;
         }
         public abstract void handleButton(SButton button);
     }
