@@ -47,7 +47,7 @@ namespace Playable_Piano
             }
 
             // extract note data
-            if (mainTrackNumber == -1)
+            if (mainTrackNumber == -1) // all tracks
             {
                 foreach (MidiTrack track in midiFile.Tracks)
                 {
@@ -74,7 +74,8 @@ namespace Playable_Piano
             }
             else
             {
-                foreach (MidiEvent midiEvent in midiFile.Tracks[mainTrackNumber].MidiEvents) 
+                // one specified track
+                foreach (MidiEvent midiEvent in midiFile.Tracks[mainTrackNumber].MidiEvents)
                 {
                     if (midiEvent.MidiEventType == MidiEventType.NoteOn)
                     {

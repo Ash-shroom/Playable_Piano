@@ -17,7 +17,6 @@ namespace Playable_Piano
         {
             if (midiNote == 96)
             {
-                Console.WriteLine(midiNote.ToString());
                 this.pitch = 2400;
             }
             else
