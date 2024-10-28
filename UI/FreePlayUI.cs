@@ -1,7 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
+using Sickhead.Engine.Util;
 using StardewModdingAPI;
+using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Audio;
 using StardewValley.Menus;
 using System;
 using System.Collections.Generic;
@@ -68,9 +72,14 @@ namespace Playable_Piano.UI
             ButtonToPitches playedNote;
             if (ButtonToPitches.TryParse(input, out playedNote))
             {
-                int playedPitch = (int) playedNote;
+                int playedPitch = (int)playedNote;
                 GameLocation location = Game1.currentLocation;
                 Vector2 tileCords = Game1.player.Tile;
+                ICue cue = Game1.soundBank.GetCue(sound);
+                mainMod.Helper.Reflection.GetProperty<bool>(cue, "IsPitchBeingControlledByRPC").PropertyInfo.SetMethod.Invoke(null, new object[] { true });
+                //mainMod.Helper.Reflection.GetField<Cue>(cue, "cue").SetValue(true);
+                //mainMod.Monitor.Log($"{cue.IsPitchBeingControlledByRPC}");
+
                 location.playSound(sound, tileCords, playedPitch);
             }
             else if (input == "MouseRight" || input == "Escape")

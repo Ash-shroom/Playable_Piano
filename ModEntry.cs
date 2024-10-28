@@ -14,6 +14,7 @@ using Microsoft.Xna.Framework;
 using xTile.Display;
 using Playable_Piano.UI;
 using System.Linq.Expressions;
+using Microsoft.Xna.Framework.Audio;
 
 namespace Playable_Piano
 {
@@ -41,7 +42,7 @@ namespace Playable_Piano
 
         public override void Entry(IModHelper helper)
         {
-            this.instrumentSoundData = helper.ReadConfig<ModConfig>().InstrumentData;   
+            this.instrumentSoundData = helper.ReadConfig<ModConfig>().InstrumentData;
             if (this.instrumentSoundData == null)
             {
                 this.Monitor.Log("Could not load Instrument Data, check whether the Mods config.json exists and file permissions.Using fallback Option", LogLevel.Warn);
