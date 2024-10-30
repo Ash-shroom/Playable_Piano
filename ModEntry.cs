@@ -43,6 +43,23 @@ namespace Playable_Piano
         public override void Entry(IModHelper helper)
         {
             this.instrumentSoundData = helper.ReadConfig<ModConfig>().InstrumentData;
+            SoundEffect lowPianoAudio, highPianoAudio;
+            string lowPianoPath = Path.Combine(helper.DirectoryPath, "toyPianoLow.wav");
+            string highPianoPath = Path.Combine(helper.DirectoryPath, "toyPianoHigh.wav");
+            using (var stream = new System.IO.FileStream(lowPianoPath, System.IO.FileMode.Open))
+            {
+                lowPianoAudio = SoundEffect.FromStream(stream);
+            }
+            using (var stream = new System.IO.FileStream(highPianoPath, System.IO.FileMode.Open))
+            {
+                highPianoAudio = SoundEffect.FromStream(stream);
+            }
+            CueDefinition lowPianoCueDef = new CueDefinition("toyPianoLow", lowPianoAudio, Game1.audioEngine.GetCategoryIndex("Sound"));
+            CueDefinition highPianoCueDef = new CueDefinition("toyPianoHigh", highPianoAudio, Game1.audioEngine.GetCategoryIndex("Sound"));
+            Game1.soundBank.AddCue(lowPianoCueDef);
+            Game1.soundBank.AddCue(highPianoCueDef);
+
+
             if (this.instrumentSoundData == null)
             {
                 this.Monitor.Log("Could not load Instrument Data, check whether the Mods config.json exists and file permissions.Using fallback Option", LogLevel.Warn);
@@ -50,6 +67,8 @@ namespace Playable_Piano
             }
             this.Monitor.Log($"Loaded Instruments:\n{string.Join("\n", this.instrumentSoundData.Select(pair => $"\t{pair.Key} : {pair.Value}"))}", LogLevel.Debug);
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
+
+
         }
 
 

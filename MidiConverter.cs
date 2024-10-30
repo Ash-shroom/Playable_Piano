@@ -62,12 +62,6 @@ namespace Playable_Piano
                                 midiTicksPerGameTick = BPMIntervals[currentBPMInterval].Item2;
                             }
                             notes.Add(new Note(midiEvent.Arg2, midiEvent.Time / midiTicksPerGameTick));
-                            /*
-                            Console.WriteLine("MidiTime: " + midiEvent.Time);
-                            Console.WriteLine("Ratio: " + midiTicksPerGameTick);
-                            Console.WriteLine("Converted Time: " + (midiEvent.Time / midiTicksPerGameTick).ToString());
-                            Console.WriteLine("");
-                            */
                         }
                     }
                 }
@@ -86,12 +80,7 @@ namespace Playable_Piano
                             midiTicksPerGameTick = BPMIntervals[currentBPMInterval].Item2;
                         }
                         notes.Add(new Note(midiEvent.Arg2, midiEvent.Time / midiTicksPerGameTick));
-                        /*
-                        Console.WriteLine("MidiTime: " + midiEvent.Time);
-                        Console.WriteLine("Ratio: " + midiTicksPerGameTick);
-                        Console.WriteLine("Converted Time: " + (midiEvent.Time / midiTicksPerGameTick).ToString());
-                        Console.WriteLine("");
-                        */
+                        
                     }
                 }
             }
