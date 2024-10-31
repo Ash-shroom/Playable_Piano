@@ -42,40 +42,36 @@ namespace Playable_Piano
                 this.Monitor.Log("Could not load Instrument Data, check whether the Mods config.json exists and file permissions. Using default config", LogLevel.Warn);
                 this.instrumentSoundData = new Dictionary<string, string>{{"Dark Piano", "toyPiano"}, {"UprightPiano", "toyPiano"}};
             }
-            foreach (var instrument in instrumentSoundData.Values)
+            foreach (var entry in instrumentSoundData)
             {
+                var instrument = entry.Value;
                 if (!Game1.soundBank.Exists(instrument))
                 {
                     if (loadSoundData(instrument))
                     {
-                        Monitor.Log($"loaded instrument: {instrument}", LogLevel.Debug);
+                        Monitor.Log($"loaded sound: {instrument}", LogLevel.Debug);
                     }
                     else
                     {
-                        Monitor.Log($"Couldn't load {instrument} skipping", LogLevel.Warn);
+                        Monitor.Log($"Couldn't load {instrument} for {entry.Key}. Skipping Entry", LogLevel.Warn);
                         continue;
                     }
-                }
-                else
-                {
-                    Monitor.Log($"loaded instrument: {instrument}", LogLevel.Debug);
                 }
                 if (!Game1.soundBank.Exists(instrument + "Low"))
                 {
                     if (loadSoundData(instrument + "Low"))
                     {
-                        Monitor.Log($"  loaded lower range", LogLevel.Debug);
+                        Monitor.Log($"  loaded lower range for {instrument}", LogLevel.Debug);
                     }
                 }
                 if (!Game1.soundBank.Exists(instrument + "High"))
                 {
                     if (loadSoundData(instrument + "High"))
                     {
-                        Monitor.Log($"  loaded upper range", LogLevel.Debug);
+                        Monitor.Log($"  loaded upper range for {instrument}", LogLevel.Debug);
                     }
                 }
             }
-            this.Monitor.Log($"Loaded Instruments:\n{string.Join("\n", this.instrumentSoundData.Select(pair => $"\t{pair.Key} : {pair.Value}"))}", LogLevel.Debug);
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
         }
 
@@ -166,12 +162,11 @@ namespace Playable_Piano
                 }
                 CueDefinition cueDef = new CueDefinition(soundName, audio, Game1.audioEngine.GetCategoryIndex("Sound"));
                 Game1.soundBank.AddCue(cueDef);
-                Monitor.Log($"added Sound Cue {cueDef.name}");
                 return true;
             }
             catch
             {
-                Monitor.Log($"Couldn't load {soundName}.wav", LogLevel.Debug);
+                Monitor.Log($"Couldn't load {soundName}.wav", LogLevel.Trace);
                 return false;
             }
         }

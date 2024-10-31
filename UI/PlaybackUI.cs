@@ -30,16 +30,13 @@ namespace Playable_Piano.UI
             this.soundHigh = mainMod.soundHigh;
             MidiFile midiFile = new MidiFile(Path.Combine(mainMod.Helper.DirectoryPath, "songs", fileName));
             List<Note> notes = new MidiConverter(midiFile, trackNumber).convertToNotes();
-            if (!mainMod.lowerOctaves || !mainMod.upperOctaves)
+
+            // if lower or upper Octaves don't exist, convert ranges to base range
+            foreach (Note note in notes)
             {
-                // convert to base octave range
-                foreach (Note note in notes)
-                {
-                    note.octave = ((note.octave == Octave.low && !mainMod.lowerOctaves) || (note.octave == Octave.high && !mainMod.upperOctaves)) ? Octave.normal : note.octave;
-                }
+                note.octave = ((note.octave == Octave.low && !mainMod.lowerOctaves) || (note.octave == Octave.high && !mainMod.upperOctaves)) ? Octave.normal : note.octave;
             }
             songPlayer = new TrackPlayer(notes);
-            
             mainMod.Helper.Events.GameLoop.UpdateTicking += playSong;
           
         }
@@ -52,9 +49,6 @@ namespace Playable_Piano.UI
                 if (playedNote.pitch >= 0)
                 {
                     string playedSoundCue = sound;
-                    // custom sounds aren't affected by the pitch of playSound
-                    // to still get multiple pitches out of one wav, the CueDefinitions pitch gets adjusted
-                    // the result sound worse than the base pitch, but is still passable
                     switch (playedNote.octave)
                     {
                         case (Octave.normal):
