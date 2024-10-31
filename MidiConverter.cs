@@ -47,7 +47,7 @@ namespace Playable_Piano
             }
 
             // extract note data
-            if (mainTrackNumber == -1)
+            if (mainTrackNumber == -1) // all tracks
             {
                 foreach (MidiTrack track in midiFile.Tracks)
                 {
@@ -62,19 +62,14 @@ namespace Playable_Piano
                                 midiTicksPerGameTick = BPMIntervals[currentBPMInterval].Item2;
                             }
                             notes.Add(new Note(midiEvent.Arg2, midiEvent.Time / midiTicksPerGameTick));
-                            /*
-                            Console.WriteLine("MidiTime: " + midiEvent.Time);
-                            Console.WriteLine("Ratio: " + midiTicksPerGameTick);
-                            Console.WriteLine("Converted Time: " + (midiEvent.Time / midiTicksPerGameTick).ToString());
-                            Console.WriteLine("");
-                            */
                         }
                     }
                 }
             }
             else
             {
-                foreach (MidiEvent midiEvent in midiFile.Tracks[mainTrackNumber].MidiEvents) 
+                // one specified track
+                foreach (MidiEvent midiEvent in midiFile.Tracks[mainTrackNumber].MidiEvents)
                 {
                     if (midiEvent.MidiEventType == MidiEventType.NoteOn)
                     {
@@ -85,12 +80,7 @@ namespace Playable_Piano
                             midiTicksPerGameTick = BPMIntervals[currentBPMInterval].Item2;
                         }
                         notes.Add(new Note(midiEvent.Arg2, midiEvent.Time / midiTicksPerGameTick));
-                        /*
-                        Console.WriteLine("MidiTime: " + midiEvent.Time);
-                        Console.WriteLine("Ratio: " + midiTicksPerGameTick);
-                        Console.WriteLine("Converted Time: " + (midiEvent.Time / midiTicksPerGameTick).ToString());
-                        Console.WriteLine("");
-                        */
+                        
                     }
                 }
             }

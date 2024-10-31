@@ -14,7 +14,7 @@ using MidiParser;
 
 namespace Playable_Piano.UI
 {
-    internal class TrackSelection : IClickableMenu
+    internal class TrackSelection : BaseUI
     {
         private const int BORDERWIDTH = 5;
         private const int BORDERMARGIN = 5;
@@ -23,8 +23,8 @@ namespace Playable_Piano.UI
         private const int WINDOWMARGINY = 100;
         private const int BUTTONSIZE = 32;
 
+        protected override PlayablePiano mainMod { get; set; }
 
-        PlayablePiano mainMod;
         private List<string> songList = new List<string>();
         private List<ClickableComponent> songSelection = new List<ClickableComponent>();
         private ClickableTextureComponent? prevButton;
@@ -35,9 +35,9 @@ namespace Playable_Piano.UI
 
 
 
-        public TrackSelection(PlayablePiano mainMod)
+        public TrackSelection(PlayablePiano mod)
         {
-            this.mainMod = mainMod;
+            mainMod = mod;
             try
             {
                 string songFolder = Path.Combine(mainMod.Helper.DirectoryPath, "songs");
@@ -78,10 +78,10 @@ namespace Playable_Piano.UI
             maxPageNumber = songList.Count / songCountThatFits;
             for (int songNr = 0; songNr < songCountThatFits; songNr++)
             {
-                if (songNr < songList.Count)
+                if (pageNumber * songCountThatFits + songNr < songList.Count)
                 {
-                    string songName = songList[pageNumber * songCountThatFits + songNr];
-                    ClickableComponent entry = new ClickableComponent(new Rectangle(WINDOWMARGINX + BORDERWIDTH + BORDERMARGIN, WINDOWMARGINY + BORDERWIDTH + BORDERMARGIN + songNr * ENTRYHEIGHT, entryWidth, ENTRYHEIGHT), songName, truncateString(songName, entryWidth));
+                    string songFileName = songList[pageNumber * songCountThatFits + songNr];
+                    ClickableComponent entry = new ClickableComponent(new Rectangle(WINDOWMARGINX + BORDERWIDTH + BORDERMARGIN, WINDOWMARGINY + BORDERWIDTH + BORDERMARGIN + songNr * ENTRYHEIGHT, entryWidth, ENTRYHEIGHT), songFileName, truncateString(songFileName, entryWidth));
                     songSelection.Add(entry);
                 }
                 else
@@ -146,10 +146,12 @@ namespace Playable_Piano.UI
                 {
                     if (song.containsPoint(x, y))
                     {
+                        //song.name == File name
                         MidiParser.MidiFile midiFile = new MidiParser.MidiFile(Path.Combine(mainMod.Helper.DirectoryPath, "songs", song.name));
                         List<int> tracksWithNotes = new List<int>();
                         foreach (MidiTrack midiTrack in midiFile.Tracks)
                         {
+                            // check if there are multiple tracks with notes if not play the one with notes, else open selection
                             foreach (MidiEvent mEvent in midiTrack.MidiEvents)
                             {
                                 if (mEvent.MidiEventType == MidiEventType.NoteOn)
@@ -163,23 +165,38 @@ namespace Playable_Piano.UI
                                 break;
                             }
                         }
+                        exitThisMenu();
+                        BaseUI menu;
                         if (tracksWithNotes.Count > 1)
                         {
-                            exitThisMenu();
-                            Game1.activeClickableMenu = new MidiTrackSelectionWindow(mainMod, song.name, tracksWithNotes);
+                            menu = new MidiTrackSelectionWindow(mainMod, song.name, tracksWithNotes);
                         }
-                        else
+                        else if (tracksWithNotes.Count == 1)
                         {
-                            mainMod.handleUIButtonPress("PerformButton", tracksWithNotes[0], song.name);
-                            exitThisMenu();
-                            return;
+                            menu = new PlaybackUI(mainMod, song.name, tracksWithNotes[0]);
                         }
+                        else {
+                            menu = new MainMenu(mainMod);
+                            mainMod.Monitor.Log($"The selected File '{song.name}' contains no NoteOn Events", LogLevel.Error);
+                        }
+                        mainMod.setActiveMenu(menu);
                     }
                 }
             }
         }
 
-
+        public override void handleButton(SButton button)
+        {
+            string input = button.ToString();
+            if (input == "Escape" || input == "MouseRight")
+            {
+                mainMod.Helper.Input.Suppress(button);
+                exitThisMenu();
+                MainMenu menu = new MainMenu(mainMod);
+                mainMod.setActiveMenu(menu);
+            }
+            
+        }
 
         /// <summary>
         /// checks if inputString fits into maxWidth, if not returns a truncated Version ending in "..."
