@@ -15,60 +15,68 @@ using xTile.Display;
 using Playable_Piano.UI;
 using System.Linq.Expressions;
 using Microsoft.Xna.Framework.Audio;
+using System.Diagnostics.Metrics;
+using StardewValley.Objects;
 
 namespace Playable_Piano
 {
-    
-
-   
-
-    enum State
-    {
-        None,
-        Menu,
-        Freeplay,
-        TrackSelection,
-        Performance
-    }
-
     internal sealed class PlayablePiano : Mod
     {
         private Dictionary<string, string> instrumentSoundData = new Dictionary<string, string>();
         private bool atPiano = false;
         private BaseUI? activeMenu;
         public string sound = "toyPiano"; // Fallback Option
+        public string soundLow = "toyPianoLow";
+        public string soundHigh = "toyPianoHigh";
+        public bool lowerOctaves = false;
+        public bool upperOctaves = false;
 
 
 
         public override void Entry(IModHelper helper)
         {
             this.instrumentSoundData = helper.ReadConfig<ModConfig>().InstrumentData;
-            SoundEffect lowPianoAudio, highPianoAudio;
-            string lowPianoPath = Path.Combine(helper.DirectoryPath, "toyPianoLow.wav");
-            string highPianoPath = Path.Combine(helper.DirectoryPath, "toyPianoHigh.wav");
-            using (var stream = new System.IO.FileStream(lowPianoPath, System.IO.FileMode.Open))
-            {
-                lowPianoAudio = SoundEffect.FromStream(stream);
-            }
-            using (var stream = new System.IO.FileStream(highPianoPath, System.IO.FileMode.Open))
-            {
-                highPianoAudio = SoundEffect.FromStream(stream);
-            }
-            CueDefinition lowPianoCueDef = new CueDefinition("toyPianoLow", lowPianoAudio, Game1.audioEngine.GetCategoryIndex("Sound"));
-            CueDefinition highPianoCueDef = new CueDefinition("toyPianoHigh", highPianoAudio, Game1.audioEngine.GetCategoryIndex("Sound"));
-            Game1.soundBank.AddCue(lowPianoCueDef);
-            Game1.soundBank.AddCue(highPianoCueDef);
-
 
             if (this.instrumentSoundData == null)
             {
-                this.Monitor.Log("Could not load Instrument Data, check whether the Mods config.json exists and file permissions.Using fallback Option", LogLevel.Warn);
+                this.Monitor.Log("Could not load Instrument Data, check whether the Mods config.json exists and file permissions. Using default config", LogLevel.Warn);
                 this.instrumentSoundData = new Dictionary<string, string>{{"Dark Piano", "toyPiano"}, {"UprightPiano", "toyPiano"}};
+            }
+            foreach (var instrument in instrumentSoundData.Values)
+            {
+                if (!Game1.soundBank.Exists(instrument))
+                {
+                    if (loadSoundData(instrument))
+                    {
+                        Monitor.Log($"loaded instrument: {instrument}", LogLevel.Debug);
+                    }
+                    else
+                    {
+                        Monitor.Log($"Couldn't load {instrument} skipping", LogLevel.Warn);
+                        continue;
+                    }
+                }
+                else
+                {
+                    Monitor.Log($"loaded instrument: {instrument}", LogLevel.Debug);
+                }
+                if (!Game1.soundBank.Exists(instrument + "Low"))
+                {
+                    if (loadSoundData(instrument + "Low"))
+                    {
+                        Monitor.Log($"  loaded lower range", LogLevel.Debug);
+                    }
+                }
+                if (!Game1.soundBank.Exists(instrument + "High"))
+                {
+                    if (loadSoundData(instrument + "High"))
+                    {
+                        Monitor.Log($"  loaded upper range", LogLevel.Debug);
+                    }
+                }
             }
             this.Monitor.Log($"Loaded Instruments:\n{string.Join("\n", this.instrumentSoundData.Select(pair => $"\t{pair.Key} : {pair.Value}"))}", LogLevel.Debug);
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
-
-
         }
 
 
@@ -106,12 +114,17 @@ namespace Playable_Piano
                         return;
                     }
 
-
                     // check if Sound data exists for the instrument
                     if (instrumentSoundData.ContainsKey(tile_name))
                     {
-                        // open main Piano Menu
                         sound = instrumentSoundData[tile_name];
+                        soundLow = sound + "Low";
+                        soundHigh = sound + "High";
+
+                        lowerOctaves = Game1.soundBank.Exists(soundLow);
+                        upperOctaves = Game1.soundBank.Exists(soundHigh);
+                            
+                        // open main Piano Menu
                         MainMenu pianoMenu = new MainMenu(this);
                         activeMenu = pianoMenu;
                         Game1.activeClickableMenu = pianoMenu;
@@ -119,7 +132,7 @@ namespace Playable_Piano
                     }
                     else
                     {
-                        this.Monitor.LogOnce($"No Sounddata found for '{tile_name}'. If it's supposed to have sound check the mod's config file", LogLevel.Debug);
+                        this.Monitor.LogOnce($"No Instrument data found for '{tile_name}'. If it's supposed to have sound check the mod's config file", LogLevel.Debug);
                         return;
                     }
                 }
@@ -137,6 +150,29 @@ namespace Playable_Piano
             if (newMenu is not null)
             {
                 Game1.activeClickableMenu = newMenu;
+            }
+        }
+
+
+        private bool loadSoundData(string soundName)
+        {
+            try
+            {
+                SoundEffect audio;
+                string audioPath = Path.Combine(Helper.DirectoryPath, "sounds", soundName + ".wav");
+                using (var stream = new FileStream(audioPath, FileMode.Open))
+                {
+                    audio = SoundEffect.FromStream(stream);
+                }
+                CueDefinition cueDef = new CueDefinition(soundName, audio, Game1.audioEngine.GetCategoryIndex("Sound"));
+                Game1.soundBank.AddCue(cueDef);
+                Monitor.Log($"added Sound Cue {cueDef.name}");
+                return true;
+            }
+            catch
+            {
+                Monitor.Log($"Couldn't load {soundName}.wav", LogLevel.Debug);
+                return false;
             }
         }
     }

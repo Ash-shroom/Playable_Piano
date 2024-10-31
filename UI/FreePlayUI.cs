@@ -52,6 +52,9 @@ namespace Playable_Piano.UI
         }
 
         private string sound;
+        private string soundLow;
+        private string soundHigh;
+        private string selectedSoundCue;
         protected override PlayablePiano mainMod { get; set; }
         
 
@@ -59,6 +62,10 @@ namespace Playable_Piano.UI
         {
             mainMod = mod;
             this.sound = mainMod.sound;
+            this.soundLow = mainMod.soundLow;
+            this.soundHigh = mainMod.soundHigh;
+            this.selectedSoundCue = sound;
+
         }
 
         public override void draw(SpriteBatch b)
@@ -77,7 +84,24 @@ namespace Playable_Piano.UI
                 int playedPitch = (int)playedNote;
                 GameLocation location = Game1.currentLocation;
                 Vector2 tileCords = Game1.player.Tile;
-                location.playSound(sound, tileCords, playedPitch);
+                if (!Game1.soundBank.GetCue(selectedSoundCue).IsPitchBeingControlledByRPC)
+                {
+                    Game1.soundBank.GetCueDefinition(selectedSoundCue).sounds.First().pitch = (playedPitch - 1200) / 1200f;
+                }
+                location.playSound(selectedSoundCue, tileCords, playedPitch);
+                
+            }
+            else if (input == "LeftControl" && mainMod.lowerOctaves)
+            {
+                selectedSoundCue = soundLow;
+            }
+            else if (input == "LeftShift" && mainMod.upperOctaves)
+            {
+                selectedSoundCue = soundHigh;
+            }
+            else if (input == "Tab")
+            {
+                selectedSoundCue = sound;
             }
             else if (input == "MouseRight" || input == "Escape")
             {

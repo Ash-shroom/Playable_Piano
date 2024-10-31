@@ -18,23 +18,30 @@ namespace Playable_Piano.UI
     {
         TrackPlayer songPlayer;
         private string sound;
-        private string? soundLow;
-        private string? soundHigh;
+        private string soundLow;
+        private string soundHigh;
         protected override PlayablePiano mainMod { get; set; }
 
         public PlaybackUI(PlayablePiano mod, string fileName, int trackNumber)
         {
             this.mainMod = mod;
             this.sound = mainMod.sound;
-            if (Game1.soundBank.Exists(sound + "Low") && Game1.soundBank.Exists(sound + "High"))
-            {
-                soundLow = sound + "Low";
-                soundHigh = sound + "High";
-            }
+            this.soundLow = mainMod.soundLow;
+            this.soundHigh = mainMod.soundHigh;
             MidiFile midiFile = new MidiFile(Path.Combine(mainMod.Helper.DirectoryPath, "songs", fileName));
             List<Note> notes = new MidiConverter(midiFile, trackNumber).convertToNotes();
+            if (!mainMod.lowerOctaves || !mainMod.upperOctaves)
+            {
+                // convert to base octave range
+                foreach (Note note in notes)
+                {
+                    note.octave = ((note.octave == Octave.low && !mainMod.lowerOctaves) || (note.octave == Octave.high && !mainMod.upperOctaves)) ? Octave.normal : note.octave;
+                }
+            }
             songPlayer = new TrackPlayer(notes);
+            
             mainMod.Helper.Events.GameLoop.UpdateTicking += playSong;
+          
         }
 
 
@@ -44,27 +51,30 @@ namespace Playable_Piano.UI
             {
                 if (playedNote.pitch >= 0)
                 {
+                    string playedSoundCue = sound;
+                    // custom sounds aren't affected by the pitch of playSound
+                    // to still get multiple pitches out of one wav, the CueDefinitions pitch gets adjusted
+                    // the result sound worse than the base pitch, but is still passable
                     switch (playedNote.octave)
                     {
                         case (Octave.normal):
-                            mainMod.Monitor.Log($"playing normal {playedNote.pitch}");
-                            Game1.currentLocation.playSound(sound, Game1.player.Tile, playedNote.pitch);
                             break;
-                            // custom sounds aren't affected by the pitch of playSound
-                            // to still get multiple pitches out of one wav, the CueDefinitions pitch gets adjusted
-                            // the result sound worse than the base pitch, but is still passable
                         case (Octave.low):
-                            mainMod.Monitor.Log($"playing low {playedNote.pitch}");
-                            Game1.soundBank.GetCueDefinition(soundLow).sounds.First<XactSoundBankSound>().pitch = (playedNote.pitch - 1200) / 1200f;
-                            Game1.currentLocation.playSound(soundLow, Game1.player.Tile, playedNote.pitch);
+                            playedSoundCue = soundLow;
                             break;
                         case (Octave.high):
-                            mainMod.Monitor.Log($"playing high {playedNote.pitch}");
-                            Game1.soundBank.GetCueDefinition(soundHigh).sounds.First<XactSoundBankSound>().pitch = (playedNote.pitch - 1200) / 1200f;
-                            Game1.currentLocation.playSound(soundHigh, Game1.player.Tile, playedNote.pitch);
+                            playedSoundCue = soundHigh;
                             break;
                     }
-                    
+                    // RPC controlled sounds have auto pitch, non controlled have to be set manually
+                    // TODO: check with new audio engine in custom audio affected by pitch
+                    if (!Game1.soundBank.GetCue(playedSoundCue).IsPitchBeingControlledByRPC)
+                    {
+                        Game1.soundBank.GetCueDefinition(playedSoundCue).sounds.First<XactSoundBankSound>().pitch = (playedNote.pitch - 1200) / 1200f;
+                    }
+                    Game1.currentLocation.playSound(playedSoundCue, Game1.player.Tile, playedNote.pitch);
+
+
                 }
                 else // Song finish marked by two invalid -200 Pitch notes
                 {

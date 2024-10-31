@@ -31,7 +31,7 @@ namespace Playable_Piano
         /// </summary>
         /// <returns> A List of Note Objects.
         /// </returns>
-        public List<Note> GetNextNote()
+        public Note[] GetNextNote()
         {
             List<Note> notes = new List<Note>();
             while (currentTick == notation[currentNote].gameTick)
@@ -40,7 +40,7 @@ namespace Playable_Piano
                 currentNote++;
             }
             currentTick++;
-            return notes;
+            return notes.ToArray() ;
         }
     }
 }
