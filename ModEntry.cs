@@ -42,36 +42,8 @@ namespace Playable_Piano
                 this.Monitor.Log("Could not load Instrument Data, check whether the Mods config.json exists and file permissions. Using default config", LogLevel.Warn);
                 this.instrumentSoundData = new Dictionary<string, string>{{"Dark Piano", "toyPiano"}, {"UprightPiano", "toyPiano"}};
             }
-            foreach (var entry in instrumentSoundData)
-            {
-                var instrument = entry.Value;
-                if (!Game1.soundBank.Exists(instrument))
-                {
-                    if (loadSoundData(instrument))
-                    {
-                        Monitor.Log($"loaded sound: {instrument}", LogLevel.Debug);
-                    }
-                    else
-                    {
-                        Monitor.Log($"Couldn't load {instrument} for {entry.Key}. Skipping Entry", LogLevel.Warn);
-                        continue;
-                    }
-                }
-                if (!Game1.soundBank.Exists(instrument + "Low"))
-                {
-                    if (loadSoundData(instrument + "Low"))
-                    {
-                        Monitor.Log($"  loaded lower range for {instrument}", LogLevel.Debug);
-                    }
-                }
-                if (!Game1.soundBank.Exists(instrument + "High"))
-                {
-                    if (loadSoundData(instrument + "High"))
-                    {
-                        Monitor.Log($"  loaded upper range for {instrument}", LogLevel.Debug);
-                    }
-                }
-            }
+            loadInstrumentSounds();
+
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
         }
 
@@ -168,6 +140,40 @@ namespace Playable_Piano
             {
                 Monitor.Log($"Couldn't load {soundName}.wav", LogLevel.Trace);
                 return false;
+            }
+        }
+
+        private void loadInstrumentSounds()
+        {
+            foreach (var entry in instrumentSoundData)
+            {
+                var instrument = entry.Value;
+                if (!Game1.soundBank.Exists(instrument))
+                {
+                    if (loadSoundData(instrument))
+                    {
+                        Monitor.Log($"loaded sound: {instrument}", LogLevel.Debug);
+                    }
+                    else
+                    {
+                        Monitor.Log($"Couldn't load {instrument} for {entry.Key}. Skipping Entry", LogLevel.Warn);
+                        continue;
+                    }
+                }
+                if (!Game1.soundBank.Exists(instrument + "Low"))
+                {
+                    if (loadSoundData(instrument + "Low"))
+                    {
+                        Monitor.Log($"  loaded lower range for {instrument}", LogLevel.Debug);
+                    }
+                }
+                if (!Game1.soundBank.Exists(instrument + "High"))
+                {
+                    if (loadSoundData(instrument + "High"))
+                    {
+                        Monitor.Log($"  loaded upper range for {instrument}", LogLevel.Debug);
+                    }
+                }
             }
         }
     }

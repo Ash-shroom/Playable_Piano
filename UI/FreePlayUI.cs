@@ -50,12 +50,23 @@ namespace Playable_Piano.UI
 
             I = 2400
         }
+        private enum Octave
+        {
+            lower,
+            normal,
+            upper
+        }
+        private const int BUTTONHEIGHT = 16;
+        private const int BUTTONWIDTH = 48;
+        private const int BUTTONMARGIN = 5;
 
         private string sound;
         private string soundLow;
         private string soundHigh;
         private string selectedSoundCue;
+        private Octave selectedOctave;
         protected override PlayablePiano mainMod { get; set; }
+        private Texture2D pitchSelection;
         
 
         public FreePlayUI(PlayablePiano mod)
@@ -65,12 +76,28 @@ namespace Playable_Piano.UI
             this.soundLow = mainMod.soundLow;
             this.soundHigh = mainMod.soundHigh;
             this.selectedSoundCue = sound;
-
+            this.selectedOctave = Octave.normal;
+            this.pitchSelection = mainMod.Helper.ModContent.Load<Texture2D>("UI/Pitch_UI.png");
         }
 
         public override void draw(SpriteBatch b)
         {
             UIUtil.drawExitInstructions(b);
+            drawControls(b);
+        }
+
+        private void drawControls(SpriteBatch b)
+        {
+            int xPos = 50;
+            int yPos = Game1.viewport.Height - 50 - BUTTONHEIGHT * Game1.pixelZoom;
+            Rectangle trebleTexture = new Rectangle((selectedOctave == Octave.upper ? 48 : 0),0,48,16);
+            Rectangle altoTexture = new Rectangle((selectedOctave == Octave.normal ? 48 : 0), 16, 48, 16);
+            Rectangle bassTexture = new Rectangle((selectedOctave == Octave.lower ? 48 : 0), 32, 48, 16);
+            if (mainMod.lowerOctaves) new ClickableTextureComponent(new Rectangle(xPos, yPos, BUTTONWIDTH, BUTTONHEIGHT), pitchSelection, bassTexture, Game1.pixelZoom).draw(b);
+            yPos -= (BUTTONMARGIN + BUTTONHEIGHT) * Game1.pixelZoom;
+            if (mainMod.lowerOctaves || mainMod.upperOctaves) new ClickableTextureComponent(new Rectangle(xPos, yPos, BUTTONWIDTH, BUTTONHEIGHT), pitchSelection, altoTexture, Game1.pixelZoom).draw(b);
+            yPos -= (BUTTONMARGIN + BUTTONHEIGHT) * Game1.pixelZoom;
+            if (mainMod.upperOctaves) new ClickableTextureComponent(new Rectangle(xPos, yPos, BUTTONWIDTH, BUTTONHEIGHT), pitchSelection, trebleTexture, Game1.pixelZoom).draw(b);            
         }
 
 
@@ -94,14 +121,17 @@ namespace Playable_Piano.UI
             else if (input == "LeftControl" && mainMod.lowerOctaves)
             {
                 selectedSoundCue = soundLow;
+                selectedOctave = Octave.lower;
             }
-            else if (input == "LeftShift" && mainMod.upperOctaves)
-            {
-                selectedSoundCue = soundHigh;
-            }
-            else if (input == "Tab")
+            else if (input == "LeftShift")
             {
                 selectedSoundCue = sound;
+                selectedOctave = Octave.normal;
+            }
+            else if (input == "Tab" && mainMod.upperOctaves)
+            {
+                selectedSoundCue = soundHigh;
+                selectedOctave = Octave.upper;
             }
             else if (input == "MouseRight" || input == "Escape")
             {
