@@ -6,5 +6,5 @@
   "UniqueID": "Mushroomy.Playable_Piano",
   "EntryDll": "Playable_Piano.dll",
   "MinimumApiVersion": "4.0.0",
-  "UpdateKeys": ["Nexus:28551"]
+  "UpdateKeys": ["Nexus:28551"]  
 }
