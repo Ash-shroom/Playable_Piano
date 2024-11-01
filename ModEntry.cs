@@ -1,22 +1,10 @@
 ﻿using StardewModdingAPI.Events;
 using StardewModdingAPI;
 using StardewValley;
-using xTile.Tiles;
-using System.ComponentModel;
-using xTile;
-using xTile.Layers;
-using xTile.Dimensions;
-using System.Collections;
-using StardewValley.Menus;
-using Microsoft.Xna.Framework.Graphics;
-using System.Drawing;
-using Microsoft.Xna.Framework;
-using xTile.Display;
 using Playable_Piano.UI;
-using System.Linq.Expressions;
 using Microsoft.Xna.Framework.Audio;
-using System.Diagnostics.Metrics;
-using StardewValley.Objects;
+using StardewValley.Triggers;
+using StardewValley.Delegates;
 
 namespace Playable_Piano
 {
@@ -34,9 +22,10 @@ namespace Playable_Piano
 
 
         public override void Entry(IModHelper helper)
-        {
+        {            
             this.instrumentSoundData = helper.ReadConfig<ModConfig>().InstrumentData;
-
+            TriggerActionManager.RegisterAction("Mushroomy.PlayablePiano_AddSound", this.addInstrument);
+            TriggerActionManager.RegisterTrigger("Mushroomy.PlayablePiano_RegisterInstrument");
             if (this.instrumentSoundData == null)
             {
                 this.Monitor.Log("Could not load Instrument Data, check whether the Mods config.json exists and file permissions. Using default config", LogLevel.Warn);
@@ -45,6 +34,7 @@ namespace Playable_Piano
             loadInstrumentSounds();
 
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
+            helper.Events.GameLoop.SaveLoaded += this.CPIntegration;
         }
 
 
@@ -147,33 +137,55 @@ namespace Playable_Piano
         {
             foreach (var entry in instrumentSoundData)
             {
-                var instrument = entry.Value;
-                if (!Game1.soundBank.Exists(instrument))
+                var sound = entry.Value;
+                if (!Game1.soundBank.Exists(sound))
                 {
-                    if (loadSoundData(instrument))
+                    if (loadSoundData(sound))
                     {
-                        Monitor.Log($"loaded sound: {instrument}", LogLevel.Debug);
+                        Monitor.Log($"loaded sound: {sound}", LogLevel.Debug);
                     }
                     else
                     {
-                        Monitor.Log($"Couldn't load {instrument} for {entry.Key}. Skipping Entry", LogLevel.Warn);
+                        Monitor.Log($"Couldn't load {sound} for {entry.Key}. Skipping Entry", LogLevel.Warn);
                         continue;
                     }
                 }
-                if (!Game1.soundBank.Exists(instrument + "Low"))
+                if (!Game1.soundBank.Exists(sound + "Low"))
                 {
-                    if (loadSoundData(instrument + "Low"))
+                    if (loadSoundData(sound + "Low"))
                     {
-                        Monitor.Log($"  loaded lower range for {instrument}", LogLevel.Debug);
+                        Monitor.Log($"  loaded lower range for {sound}", LogLevel.Debug);
                     }
                 }
-                if (!Game1.soundBank.Exists(instrument + "High"))
+                if (!Game1.soundBank.Exists(sound + "High"))
                 {
-                    if (loadSoundData(instrument + "High"))
+                    if (loadSoundData(sound + "High"))
                     {
-                        Monitor.Log($"  loaded upper range for {instrument}", LogLevel.Debug);
+                        Monitor.Log($"  loaded upper range for {sound}", LogLevel.Debug);
                     }
                 }
+            }
+        }
+        public void CPIntegration(object? sender, SaveLoadedEventArgs e){
+            Monitor.Log("Loading CP Instruments");
+            TriggerActionManager.Raise("Mushroomy.PlayablePiano_RegisterInstrument");
+        }
+
+        public bool addInstrument(string[] args, TriggerActionContext context, out string? error)
+        {
+            string instrumentName = args[1];
+            string soundName = args[2];
+            if (Game1.soundBank.Exists(soundName))
+            {
+                this.instrumentSoundData.Add(instrumentName, soundName);
+                Monitor.Log($"Added {instrumentName} with sound {soundName}");
+                error = null;
+                return true;
+            }
+            else
+            {
+                error = $"sound {soundName} doesn't exist";
+                return false;
             }
         }
     }
