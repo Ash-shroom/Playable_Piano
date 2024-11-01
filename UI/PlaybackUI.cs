@@ -28,7 +28,7 @@ namespace Playable_Piano.UI
             this.sound = mainMod.sound;
             this.soundLow = mainMod.soundLow;
             this.soundHigh = mainMod.soundHigh;
-            MidiFile midiFile = new MidiFile(Path.Combine(mainMod.Helper.DirectoryPath, "songs", fileName));
+            MidiFile midiFile = new MidiFile(Path.Combine(mainMod.Helper.DirectoryPath, "assets", "songs", fileName));
             List<Note> notes = new MidiConverter(midiFile, trackNumber).convertToNotes();
 
             // if lower or upper Octaves don't exist, convert ranges to base range

@@ -127,7 +127,7 @@ namespace Playable_Piano
             try
             {
                 SoundEffect audio;
-                string audioPath = Path.Combine(Helper.DirectoryPath, "sounds", soundName + ".wav");
+                string audioPath = Path.Combine(Helper.DirectoryPath, "assets" ,"sounds", soundName + ".wav");
                 using (var stream = new FileStream(audioPath, FileMode.Open))
                 {
                     audio = SoundEffect.FromStream(stream);

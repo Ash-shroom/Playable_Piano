@@ -40,7 +40,7 @@ namespace Playable_Piano.UI
             mainMod = mod;
             try
             {
-                string songFolder = Path.Combine(mainMod.Helper.DirectoryPath, "songs");
+                string songFolder = Path.Combine(mainMod.Helper.DirectoryPath, "assets", "songs");
                 foreach (string song in Directory.GetFiles(songFolder, "*.mid"))
                 {
                     this.songList.Add(Path.GetFileName(song));
@@ -147,7 +147,7 @@ namespace Playable_Piano.UI
                     if (song.containsPoint(x, y))
                     {
                         //song.name == File name
-                        MidiParser.MidiFile midiFile = new MidiParser.MidiFile(Path.Combine(mainMod.Helper.DirectoryPath, "songs", song.name));
+                        MidiParser.MidiFile midiFile = new MidiParser.MidiFile(Path.Combine(mainMod.Helper.DirectoryPath, "assets", "songs", song.name));
                         List<int> tracksWithNotes = new List<int>();
                         foreach (MidiTrack midiTrack in midiFile.Tracks)
                         {

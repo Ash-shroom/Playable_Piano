@@ -77,7 +77,7 @@ namespace Playable_Piano.UI
             this.soundHigh = mainMod.soundHigh;
             this.selectedSoundCue = sound;
             this.selectedOctave = Octave.normal;
-            this.pitchSelection = mainMod.Helper.ModContent.Load<Texture2D>("UI/Pitch_UI.png");
+            this.pitchSelection = mainMod.Helper.ModContent.Load<Texture2D>("assets/UI/Pitch_UI.png");
         }
 
         public override void draw(SpriteBatch b)
