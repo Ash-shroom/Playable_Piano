@@ -1,7 +1,7 @@
 {
   "Name": "Playable_Piano",
   "Author": "Mushroomy",
-  "Version": "1.2.0",
+  "Version": "1.2.1",
   "Description": "Makes the Dark and Upright Piano playable",
   "UniqueID": "Mushroomy.Playable_Piano",
   "EntryDll": "Playable_Piano.dll",
