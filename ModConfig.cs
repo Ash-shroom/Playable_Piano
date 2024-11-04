@@ -13,8 +13,8 @@ namespace Playable_Piano
         public ModConfig() 
         {
             InstrumentData = new Dictionary<string, string>();
-            InstrumentData.Add("Dark Piano", "toyPiano");
-            InstrumentData.Add("UprightPiano", "toyPiano");
+            InstrumentData.Add("Dark Piano", "Mushroomy.PlayablePiano_Piano");
+            InstrumentData.Add("UprightPiano", "Mushroomy.PlayablePiano_Piano");
         }
     }
 }

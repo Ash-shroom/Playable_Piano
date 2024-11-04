@@ -41,11 +41,21 @@ namespace Playable_Piano.UI
             try
             {
                 string songFolder = Path.Combine(mainMod.Helper.DirectoryPath, "assets", "songs");
+                mainMod.Monitor.VerboseLog(songFolder + " contains");
+                foreach (string filename in Directory.GetFiles(songFolder))
+                {
+                    mainMod.Monitor.VerboseLog(Path.GetFileName(filename));
+                }
                 foreach (string song in Directory.GetFiles(songFolder, "*.mid"))
                 {
                     this.songList.Add(Path.GetFileName(song));
                 }
                 this.songList.Sort();
+                if (this.songList.Count == 0)
+                {
+                    mainMod.Monitor.LogOnce("No songs were found in 'assets\\songs'. " +
+                        "If you previously had an older version of this mod installed, the songs folder has been moved to 'Playable_Piano/assets/songs'.", LogLevel.Info);
+                }
             }
             catch
             {
