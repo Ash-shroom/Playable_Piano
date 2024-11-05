@@ -157,8 +157,17 @@ namespace Playable_Piano.UI
                     if (song.containsPoint(x, y))
                     {
                         //song.name == File name
-                        MidiParser.MidiFile midiFile = new MidiParser.MidiFile(Path.Combine(mainMod.Helper.DirectoryPath, "assets", "songs", song.name));
-                        List<int> tracksWithNotes = new List<int>();
+                        MidiParser.MidiFile midiFile;
+                        try
+                        {
+                            midiFile = new MidiParser.MidiFile(Path.Combine(mainMod.Helper.DirectoryPath, "assets", "songs", song.name));
+                        }
+                        catch 
+                        {
+                            mainMod.Monitor.Log($"Couldn't read file {song.name}. It either is an invalid MIDI File or couldn't be opened", LogLevel.Error);
+                            return;
+                        }
+                            List<int> tracksWithNotes = new List<int>();
                         foreach (MidiTrack midiTrack in midiFile.Tracks)
                         {
                             // check if there are multiple tracks with notes if not play the one with notes, else open selection
