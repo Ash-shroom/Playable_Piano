@@ -11,11 +11,10 @@ namespace Playable_Piano
     internal sealed class PlayablePiano : Mod
     {
         private Dictionary<string, string> instrumentSoundData = new Dictionary<string, string>();
-        private bool atPiano = false;
         private BaseUI? activeMenu;
-        public string sound = "toyPiano"; // Fallback Option
-        public string soundLow = "toyPianoLow";
-        public string soundHigh = "toyPianoHigh";
+        public string sound = "Mushroomy.PlayablePiano_Piano"; 
+        public string soundLow = "Mushroomy.PlayablePiano_PianoLow";
+        public string soundHigh = "Mushroomy.PlayablePiano_PianoHigh";
         public bool lowerOctaves = false;
         public bool upperOctaves = false;
 
@@ -29,10 +28,11 @@ namespace Playable_Piano
             if (this.instrumentSoundData == null)
             {
                 this.Monitor.Log("Could not load Instrument Data, check whether the Mods config.json exists and file permissions. Using default config", LogLevel.Warn);
-                this.instrumentSoundData = new Dictionary<string, string>{{"Dark Piano", "toyPiano"}, {"UprightPiano", "toyPiano"}};
+                this.instrumentSoundData = new Dictionary<string, string>{{"Dark Piano", "Mushroomy.PlayablePiano_Piano"}, {"UprightPiano", "Mushroomy.PlayablePiano_Piano"}};
             }
             loadInstrumentSounds();
-
+            StardewValley.Object exmplItem = new StardewValley.Object();
+            exmplItem.performUseAction(Game1.currentLocation);
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
             helper.Events.GameLoop.SaveLoaded += this.CPIntegration;
         }
@@ -45,7 +45,7 @@ namespace Playable_Piano
             if (Game1.player.IsSitting())
             {
                 string input = e.Button.ToString();
-                if (atPiano && activeMenu is not null)
+                if (activeMenu is not null)
                 {
                     activeMenu.handleButton(e.Button);
                 }
@@ -86,7 +86,6 @@ namespace Playable_Piano
                         MainMenu pianoMenu = new MainMenu(this);
                         activeMenu = pianoMenu;
                         Game1.activeClickableMenu = pianoMenu;
-                        atPiano = true;
                     }
                     else
                     {
@@ -95,11 +94,6 @@ namespace Playable_Piano
                     }
                 }
             }
-            else
-            {
-                atPiano = false;
-            }
-
         }
 
         public void setActiveMenu(BaseUI? newMenu)
