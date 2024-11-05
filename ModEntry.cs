@@ -25,7 +25,7 @@ namespace Playable_Piano
         {            
             this.instrumentSoundData = helper.ReadConfig<ModConfig>().InstrumentData;
             TriggerActionManager.RegisterAction("Mushroomy.PlayablePiano_AddSound", this.addInstrument);
-            TriggerActionManager.RegisterTrigger("Mushroomy.PlayablePiano_RegisterInstrument");
+            TriggerActionManager.RegisterTrigger("Mushroomy.PlayablePiano_SaveLoaded");
             if (this.instrumentSoundData == null)
             {
                 this.Monitor.Log("Could not load Instrument Data, check whether the Mods config.json exists and file permissions. Using default config", LogLevel.Warn);
@@ -166,9 +166,12 @@ namespace Playable_Piano
                 }
             }
         }
+
+        
+
         public void CPIntegration(object? sender, SaveLoadedEventArgs e){
             Monitor.Log("Loading CP Instruments");
-            TriggerActionManager.Raise("Mushroomy.PlayablePiano_RegisterInstrument");
+            TriggerActionManager.Raise("Mushroomy.PlayablePiano_SaveLoaded");
         }
 
         public bool addInstrument(string[] args, TriggerActionContext context, out string? error)
