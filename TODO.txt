@@ -1,5 +1,0 @@
-﻿o open Menu on sit down
-o finish MIDI TrackSelection
-
-o change Mod-Page section for "custom Instruments" to reflect the changes in the "Instrument not found" error message
-o change Version number
