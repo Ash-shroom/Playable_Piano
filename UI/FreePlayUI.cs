@@ -78,6 +78,7 @@ namespace Playable_Piano.UI
             this.selectedSoundCue = sound;
             this.selectedOctave = Octave.normal;
             this.pitchSelection = mainMod.Helper.ModContent.Load<Texture2D>("assets/UI/Pitch_UI.png");
+            Game1.stopMusicTrack(StardewValley.GameData.MusicContext.Default);
         }
 
         public override void draw(SpriteBatch b)
@@ -97,7 +98,7 @@ namespace Playable_Piano.UI
             yPos -= (BUTTONMARGIN + BUTTONHEIGHT) * Game1.pixelZoom;
             if (mainMod.lowerOctaves || mainMod.upperOctaves) new ClickableTextureComponent(new Rectangle(xPos, yPos, BUTTONWIDTH, BUTTONHEIGHT), pitchSelection, altoTexture, Game1.pixelZoom).draw(b);
             yPos -= (BUTTONMARGIN + BUTTONHEIGHT) * Game1.pixelZoom;
-            if (mainMod.upperOctaves) new ClickableTextureComponent(new Rectangle(xPos, yPos, BUTTONWIDTH, BUTTONHEIGHT), pitchSelection, trebleTexture, Game1.pixelZoom).draw(b);            
+            if (mainMod.upperOctaves) new ClickableTextureComponent(new Rectangle(xPos, yPos, BUTTONWIDTH, BUTTONHEIGHT), pitchSelection, trebleTexture, Game1.pixelZoom).draw(b);
         }
 
 

@@ -1,10 +1,13 @@
-﻿using Microsoft.Xna.Framework.Audio;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Media;
 using MidiParser;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Audio;
+using StardewValley.GameData;
 using StardewValley.Menus;
 using System;
 using System.Collections.Generic;
@@ -38,7 +41,7 @@ namespace Playable_Piano.UI
             }
             songPlayer = new TrackPlayer(notes);
             mainMod.Helper.Events.GameLoop.UpdateTicking += playSong;
-          
+            Game1.stopMusicTrack(MusicContext.Default);
         }
 
 
@@ -82,7 +85,7 @@ namespace Playable_Piano.UI
         
         public override void draw(SpriteBatch b)
         {
-            UIUtil.drawExitInstructions(b);
+            UIUtil.drawExitInstructions(b);    
         }
 
         public override void handleButton(SButton button)
