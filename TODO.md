@@ -7,3 +7,14 @@
 	- [ ] create Example Item for testing (Ocarina)
 - [ ] update changelog
 - [ ] write documentation for creating custom Instruments
+- [ ] check manifest
+- [ ] check release zip
+	- [ ] assets/sounds
+		- [ ] Piano Sounds
+		- [ ] no toyPiano
+		- [ ] Readme.txt
+	- [ ] assets/songs
+		- [ ] Readme.txt 
+	- [ ] assets/UI
+		- [ ] Pitch_UI.png
+- [ ] create new github repo for open source, or find efficient way to change name of commit authors
