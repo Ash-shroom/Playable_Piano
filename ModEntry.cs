@@ -32,7 +32,6 @@ namespace Playable_Piano
             }
             loadInstrumentSounds();
             StardewValley.Object exmplItem = new StardewValley.Object();
-            exmplItem.performUseAction(Game1.currentLocation);
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
             helper.Events.GameLoop.SaveLoaded += this.CPIntegration;
         }
@@ -41,57 +40,57 @@ namespace Playable_Piano
         private void OnButtonPressed(object? sender, ButtonPressedEventArgs e)
         {
             if (!Context.IsWorldReady)
+            {
                 return;
+            }
+            else if (activeMenu is not null)
+            {
+                activeMenu.handleButton(e.Button);
+                return;
+            }
+            else if (Game1.activeClickableMenu is null && Game1.player.ActiveItem is not null && (e.Button.ToString() == "MouseLeft"))
+            {
+                string instrument = Game1.player.ActiveItem.Name;
+                if (instrumentSoundData.ContainsKey(Game1.player.ActiveItem.Name))
+                {
+                    Helper.Input.Suppress(e.Button);
+                    openInstrumentMenu(instrumentSoundData[instrument]);
+                    return;
+                }
+            }
             if (Game1.player.IsSitting())
             {
                 string input = e.Button.ToString();
-                if (activeMenu is not null)
+                // Leaving Piano/Furniture without opening Menu
+                    
+                if (input == "MouseRight" || input == "Escape")
                 {
-                    activeMenu.handleButton(e.Button);
+                    return;
+                }
+
+                GameLocation location = Game1.currentLocation;
+                Farmer player = Game1.player;
+                string tile_name;
+                // sat down at Piano
+                try
+                {
+                    // getObjectAtTile returns null when called in the middle of sitting down/standing up
+                    tile_name = location.getObjectAtTile((int)player.Tile.X, (int)player.Tile.Y, true).Name;
+                }
+                catch (NullReferenceException)
+                {
+                    return;
+                }
+
+                // check if Sound data exists for the instrument
+                if (instrumentSoundData.ContainsKey(tile_name))
+                {
+                    openInstrumentMenu(instrumentSoundData[tile_name]);
                 }
                 else
                 {
-                    // Leaving Piano/Furniture without opening Menu
-                    if (input == "MouseRight" || input == "Escape")
-                    {
-                        return;
-                    }
-
-                    GameLocation location = Game1.currentLocation;
-                    Farmer player = Game1.player;
-
-                    string tile_name;
-                    // sat down at Piano
-                    try
-                    {
-                        // getObjectAtTile returns null when called in the middle of sitting down/standing up
-                        tile_name = location.getObjectAtTile((int)player.Tile.X, (int)player.Tile.Y, true).Name;
-                    }
-                    catch (NullReferenceException)
-                    {
-                        return;
-                    }
-
-                    // check if Sound data exists for the instrument
-                    if (instrumentSoundData.ContainsKey(tile_name))
-                    {
-                        sound = instrumentSoundData[tile_name];
-                        soundLow = sound + "Low";
-                        soundHigh = sound + "High";
-
-                        lowerOctaves = Game1.soundBank.Exists(soundLow);
-                        upperOctaves = Game1.soundBank.Exists(soundHigh);
-                            
-                        // open main Piano Menu
-                        MainMenu pianoMenu = new MainMenu(this);
-                        activeMenu = pianoMenu;
-                        Game1.activeClickableMenu = pianoMenu;
-                    }
-                    else
-                    {
-                        this.Monitor.LogOnce($"No Instrument data found for '{tile_name}'. If it's supposed to have sound check the mod's config file", LogLevel.Debug);
-                        return;
-                    }
+                    this.Monitor.LogOnce($"No Instrument data found for '{tile_name}'. If it's supposed to have sound check the mod's config file", LogLevel.Debug);
+                    return;
                 }
             }
         }
@@ -103,6 +102,45 @@ namespace Playable_Piano
             {
                 Game1.activeClickableMenu = newMenu;
             }
+        }
+
+       
+        public void CPIntegration(object? sender, SaveLoadedEventArgs e)
+        {
+            Monitor.Log("Loading CP Instruments");
+            TriggerActionManager.Raise("Mushroomy.PlayablePiano_SaveLoaded");
+        }
+
+        public bool addInstrument(string[] args, TriggerActionContext context, out string? error)
+        {
+            string instrumentName = args[1];
+            string soundName = args[2];
+            if (Game1.soundBank.Exists(soundName))
+            {
+                this.instrumentSoundData.Add(instrumentName, soundName);
+                Monitor.Log($"Added {instrumentName} with sound {soundName}");
+                error = null;
+                return true;
+            }
+            else
+            {
+                error = $"sound {soundName} doesn't exist";
+                return false;
+            }
+        }
+
+        private void openInstrumentMenu(string soundName)
+        {
+            sound = soundName;
+            soundLow = soundName + "Low";
+            soundHigh = soundName + "High";
+            lowerOctaves = Game1.soundBank.Exists(soundLow);
+            upperOctaves = Game1.soundBank.Exists(soundHigh);
+
+            // open main Piano Menu
+            MainMenu pianoMenu = new MainMenu(this);
+            activeMenu = pianoMenu;
+            Game1.activeClickableMenu = pianoMenu;
         }
 
 
@@ -163,28 +201,7 @@ namespace Playable_Piano
 
         
 
-        public void CPIntegration(object? sender, SaveLoadedEventArgs e){
-            Monitor.Log("Loading CP Instruments");
-            TriggerActionManager.Raise("Mushroomy.PlayablePiano_SaveLoaded");
-        }
-
-        public bool addInstrument(string[] args, TriggerActionContext context, out string? error)
-        {
-            string instrumentName = args[1];
-            string soundName = args[2];
-            if (Game1.soundBank.Exists(soundName))
-            {
-                this.instrumentSoundData.Add(instrumentName, soundName);
-                Monitor.Log($"Added {instrumentName} with sound {soundName}");
-                error = null;
-                return true;
-            }
-            else
-            {
-                error = $"sound {soundName} doesn't exist";
-                return false;
-            }
-        }
+        
     }
 }
 
