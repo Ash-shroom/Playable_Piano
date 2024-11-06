@@ -2,7 +2,8 @@
 - [X] change `toyPiano` references to `Mushroomy.PlayablePiano_Piano`
 - [ ] finalise Content Patcher integration
 	- [X] Trigger Action for registering Intstruments
-	- [ ] extract Menu opening into Function, that can be called as API
+	- [X] extract Menu opening into Function
+	- [X] make Inventory Items be usable as Instruments
 	- [ ] create Example Item for testing (Ocarina)
-	- [ ] 
-- [ ] check how to reset Config to default automatically 
+- [ ] update changelog
+- [ ] write documentation for creating custom Instruments

@@ -48,7 +48,7 @@ namespace Playable_Piano
                 activeMenu.handleButton(e.Button);
                 return;
             }
-            else if (Game1.activeClickableMenu is null && Game1.player.ActiveItem is not null && (e.Button.ToString() == "MouseLeft"))
+            else if (Game1.activeClickableMenu is null && Game1.player.ActiveItem is not null && !Game1.player.ActiveItem.isPlaceable() && (e.Button.ToString() == "MouseLeft"))
             {
                 string instrument = Game1.player.ActiveItem.Name;
                 if (instrumentSoundData.ContainsKey(Game1.player.ActiveItem.Name))
