@@ -78,13 +78,13 @@ namespace Playable_Piano.UI
             this.selectedSoundCue = sound;
             this.selectedOctave = Octave.normal;
             this.pitchSelection = mainMod.Helper.ModContent.Load<Texture2D>("assets/UI/Pitch_UI.png");
+            Game1.musicCategory.SetVolume(0f);
         }
 
         public override void draw(SpriteBatch b)
         {
             UIUtil.drawExitInstructions(b);
             drawControls(b);
-            Game1.musicPlayerVolume = 0f;
         }
 
         private void drawControls(SpriteBatch b)
@@ -136,6 +136,7 @@ namespace Playable_Piano.UI
             }
             else if (input == "MouseRight" || input == "Escape")
             {
+                Game1.musicCategory.SetVolume(Game1.options.musicVolumeLevel);
                 exitThisMenu();
                 MainMenu menu = new MainMenu(mainMod);
                 mainMod.setActiveMenu(menu);

@@ -41,13 +41,12 @@ namespace Playable_Piano.UI
             }
             songPlayer = new TrackPlayer(notes);
             mainMod.Helper.Events.GameLoop.UpdateTicking += playSong;
-            Game1.stopMusicTrack(MusicContext.Default);
+            Game1.musicCategory.SetVolume(0f);
         }
 
 
         private void playSong(object? sender, UpdateTickingEventArgs e)
         {
-            Game1.musicPlayerVolume = 0f;
             foreach (Note playedNote in songPlayer.GetNextNote())
             {
                 if (playedNote.pitch >= 0)
@@ -65,7 +64,6 @@ namespace Playable_Piano.UI
                             break;
                     }
                     // RPC controlled sounds have auto pitch, non controlled have to be set manually
-                    // TODO: check with new audio engine in custom audio affected by pitch
                     if (!Game1.soundBank.GetCue(playedSoundCue).IsPitchBeingControlledByRPC)
                     {
                         Game1.soundBank.GetCueDefinition(playedSoundCue).sounds.First<XactSoundBankSound>().pitch = (playedNote.pitch - 1200) / 1200f;
@@ -78,6 +76,7 @@ namespace Playable_Piano.UI
                 {
                     mainMod.Monitor.Log("finished");
                     mainMod.Helper.Events.GameLoop.UpdateTicking -= playSong;
+                    Game1.musicCategory.SetVolume(Game1.options.musicVolumeLevel);
                     MainMenu menu = new MainMenu(mainMod);
                     mainMod.setActiveMenu(menu);
                 }
@@ -86,7 +85,7 @@ namespace Playable_Piano.UI
         
         public override void draw(SpriteBatch b)
         {
-            UIUtil.drawExitInstructions(b);    
+            UIUtil.drawExitInstructions(b);
         }
 
         public override void handleButton(SButton button)
@@ -95,6 +94,7 @@ namespace Playable_Piano.UI
             if (input == "Escape" || input == "MouseRight")
             {
                 mainMod.Helper.Events.GameLoop.UpdateTicking -= playSong;
+                Game1.musicCategory.SetVolume(Game1.options.musicVolumeLevel);
                 mainMod.Helper.Input.Suppress(button);
                 exitThisMenu();
                 TrackSelection menu = new TrackSelection(mainMod);
