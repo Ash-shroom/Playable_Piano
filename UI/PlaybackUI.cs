@@ -47,6 +47,7 @@ namespace Playable_Piano.UI
 
         private void playSong(object? sender, UpdateTickingEventArgs e)
         {
+            Game1.musicPlayerVolume = 0f;
             foreach (Note playedNote in songPlayer.GetNextNote())
             {
                 if (playedNote.pitch >= 0)

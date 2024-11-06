@@ -78,13 +78,13 @@ namespace Playable_Piano.UI
             this.selectedSoundCue = sound;
             this.selectedOctave = Octave.normal;
             this.pitchSelection = mainMod.Helper.ModContent.Load<Texture2D>("assets/UI/Pitch_UI.png");
-            Game1.stopMusicTrack(StardewValley.GameData.MusicContext.Default);
         }
 
         public override void draw(SpriteBatch b)
         {
             UIUtil.drawExitInstructions(b);
             drawControls(b);
+            Game1.musicPlayerVolume = 0f;
         }
 
         private void drawControls(SpriteBatch b)
