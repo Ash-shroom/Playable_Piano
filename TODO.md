@@ -10,8 +10,9 @@
 - [X] check manifest
 - [X] check release zip
 	- [X] assets/sounds
-		- [X] Piano Sounds
-		- [X] no toyPiano
+		- [X] HQ Piano Sounds
+		- [X] Toy Piano Sounds
+		- [X] Flute Sounds
 		- [X] Readme.txt
 	- [X] assets/songs
 		- [X] Readme.txt 
