@@ -5,6 +5,7 @@ using Playable_Piano.UI;
 using Microsoft.Xna.Framework.Audio;
 using StardewValley.Triggers;
 using StardewValley.Delegates;
+using System.Linq;
 
 namespace Playable_Piano
 {
@@ -30,7 +31,7 @@ namespace Playable_Piano
                 this.Monitor.Log("Could not load Instrument Data, check whether the Mods config.json exists and file permissions. Using default config", LogLevel.Warn);
                 this.instrumentSoundData = new Dictionary<string, string>{{"Dark Piano", "Mushroomy.PlayablePiano_Piano"}, {"UprightPiano", "Mushroomy.PlayablePiano_Piano"}};
             }
-            loadInstrumentSounds();
+            loadSounds();
             StardewValley.Object exmplItem = new StardewValley.Object();
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
             helper.Events.GameLoop.SaveLoaded += this.CPIntegration;
@@ -43,7 +44,7 @@ namespace Playable_Piano
             {
                 return;
             }
-            else if (activeMenu is not null)
+            else if (activeMenu is not null && Game1.activeClickableMenu is not null) //activeMenu has handleButton Method, and is thus used instead of activeClickableMenu
             {
                 activeMenu.handleButton(e.Button);
                 return;
@@ -58,7 +59,7 @@ namespace Playable_Piano
                     return;
                 }
             }
-            if (Game1.player.IsSitting())
+            else if (Game1.activeClickableMenu is null && Game1.player.IsSitting())
             {
                 string input = e.Button.ToString();
                 // Leaving Piano/Furniture without opening Menu
@@ -93,6 +94,11 @@ namespace Playable_Piano
                     return;
                 }
             }
+            else
+            {
+                // if somehow Game1.activeClickableMenu got nulled, without activeMenu getting nulled, they get synced here
+                activeMenu = null;
+            }
         }
 
         public void setActiveMenu(BaseUI? newMenu)
@@ -107,7 +113,15 @@ namespace Playable_Piano
        
         public void CPIntegration(object? sender, SaveLoadedEventArgs e)
         {
-            Monitor.Log("Loading CP Instruments");
+            foreach (var action in TriggerActionManager.GetActionsForTrigger("Mushroomy.PlayablePiano_SaveLoaded"))
+            {
+                if (Game1.player.triggerActionsRun.Contains(action.Data.Id))
+                {
+                    Monitor.Log($"{action.Data.Id} has Marked its AddSound Action as applied, please notify the Mod's author to set 'MarkActionApplied' as false.", LogLevel.Debug);
+                    Game1.player.triggerActionsRun.Remove(action.Data.Id);
+                }
+            }
+            Monitor.Log("adding CP Instruments");
             TriggerActionManager.Raise("Mushroomy.PlayablePiano_SaveLoaded");
         }
 
@@ -117,8 +131,11 @@ namespace Playable_Piano
             string soundName = args[2];
             if (Game1.soundBank.Exists(soundName))
             {
-                this.instrumentSoundData.Add(instrumentName, soundName);
-                Monitor.Log($"Added {instrumentName} with sound {soundName}");
+                // if it can't be added, then the sound assignment has already happened in the config
+                if (this.instrumentSoundData.TryAdd(instrumentName, soundName))
+                {
+                    Monitor.Log($"Added {instrumentName} with sound {soundName}");
+                }
                 error = null;
                 return true;
             }
@@ -165,7 +182,7 @@ namespace Playable_Piano
             }
         }
 
-        private void loadInstrumentSounds()
+        private void loadSounds()
         {
             foreach (var entry in instrumentSoundData)
             {
