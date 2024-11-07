@@ -178,13 +178,18 @@ namespace Playable_Piano
             }
             catch
             {
-                Monitor.Log($"Couldn't load {soundName}.wav", LogLevel.Trace);
+                Monitor.Log($"Couldn't load {soundName}.wav", LogLevel.Debug);
                 return false;
             }
         }
 
         private void loadSounds()
         {
+            string[] defaultSounds = {"toyPianoLow", "toyPianoHigh", "fluteLow", "fluteHigh", "Mushroomy.PlayablePiano_Piano", "Mushroomy.PlayablePiano_PianoLow", "Mushroomy.PlayablePiano_PianoHigh"};
+            foreach (string defaultSound in defaultSounds)
+            {
+                loadSoundData(defaultSound);
+            }
             foreach (var entry in instrumentSoundData)
             {
                 var sound = entry.Value;
