@@ -1,7 +1,10 @@
-If you want to extend the pitch range of a sound put two files named "<sound>Low.wav" and "<sound>High.wav" (replace <sound> with the name of the base game sound) into this folder
+If you want to add a custom sound to an existing instrument, add a '.wav' file into this folder, and add an entry to the config.
+for extended the pitch ranges, add a file named "<sound>Low.wav" and/or "<sound>High.wav" into this folder (this also works for base game sounds), each file will give you 2 additional octaves.
 
-The Low pitched sound file should contain the base sound pitched to C4, the high pitched sound file should be pitched to C8.
-This will give you a total pitch range from C3-C9.
-For optimal results the pitched versions should be sped up/slowed down versions of the base sound.
+The pitches of the files can be arbitrary, however to ensure correct Playback of MIDI Files, the pitches should be:
+    C6 for the base sound,
+    C4 for the low pitched sound,
+    C8 for the high pitched sound
 
-As an example if you wanted more pitches for your cat Piano (using the cat sound), then there should be two files in here named "catLow.wav" and "catHigh.wav".
+To avoid "breaks" between the Octaves, the low and High sounds should speedup/slowed down versions of the base sound. The game uses this method to pitch the sounds and thus this will ensure, that the transition between the octaves will be seamless.
+Thus the low sound should be the base sound at 0.25x Speed, and the high sound should be at 4x speed.

@@ -1,20 +1,20 @@
 ﻿# TODO
 - [X] change `toyPiano` references to `Mushroomy.PlayablePiano_Piano`
-- [ ] finalise Content Patcher integration
+- [X] finalise Content Patcher integration
 	- [X] Trigger Action for registering Intstruments
 	- [X] extract Menu opening into Function
 	- [X] make Inventory Items be usable as Instruments
-	- [ ] create Example Item for testing (Ocarina)
-- [ ] update changelog
+	- [X] create Example Item for testing (Ocarina)
+- [X] update changelog
 - [ ] write documentation for creating custom Instruments
-- [ ] check manifest
-- [ ] check release zip
-	- [ ] assets/sounds
-		- [ ] Piano Sounds
-		- [ ] no toyPiano
-		- [ ] Readme.txt
-	- [ ] assets/songs
-		- [ ] Readme.txt 
-	- [ ] assets/UI
-		- [ ] Pitch_UI.png
-- [ ] create new github repo for open source, or find efficient way to change name of commit authors
+- [X] check manifest
+- [X] check release zip
+	- [X] assets/sounds
+		- [X] Piano Sounds
+		- [X] no toyPiano
+		- [X] Readme.txt
+	- [X] assets/songs
+		- [X] Readme.txt 
+	- [X] assets/UI
+		- [X] Pitch_UI.png
+- [X] create new github repo for open source, or find efficient way to change name of commit authors
