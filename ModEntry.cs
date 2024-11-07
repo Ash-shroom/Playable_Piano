@@ -52,14 +52,15 @@ namespace Playable_Piano
             else if (Game1.activeClickableMenu is null && Game1.player.ActiveItem is not null && !Game1.player.ActiveItem.isPlaceable() && (e.Button.ToString() == "MouseLeft"))
             {
                 string instrument = Game1.player.ActiveItem.Name;
-                if (instrumentSoundData.ContainsKey(Game1.player.ActiveItem.Name))
+                if (instrumentSoundData.ContainsKey(instrument))
                 {
                     Helper.Input.Suppress(e.Button);
                     openInstrumentMenu(instrumentSoundData[instrument]);
                     return;
                 }
             }
-            else if (Game1.activeClickableMenu is null && Game1.player.IsSitting())
+            // no else if, due to the previous else if being entered, when sitting down and having an Active Item
+            if (Game1.activeClickableMenu is null && Game1.player.IsSitting())
             {
                 string input = e.Button.ToString();
                 // Leaving Piano/Furniture without opening Menu
