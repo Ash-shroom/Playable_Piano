@@ -39,6 +39,14 @@ namespace Playable_Piano.UI
             {
                 note.octave = ((note.octave == Octave.low && !mainMod.lowerOctaves) || (note.octave == Octave.high && !mainMod.upperOctaves)) ? Octave.normal : note.octave;
             }
+            int playTimeInSec = notes.Last<Note>().gameTick / 60;
+            int playTimeInMin = playTimeInSec / 60;
+            playTimeInSec = playTimeInSec % 60;
+            mainMod.Monitor.Log($"now Playing: {fileName}");
+            mainMod.Monitor.Log($"Nr. of Notes: {notes.Count}");
+            mainMod.Monitor.Log($"last Note will be playing on gameTick: {notes.Last<Note>().gameTick}");
+            mainMod.Monitor.Log($"Estimated Playtime: {playTimeInMin} Minutes {playTimeInSec} seconds");
+            
             songPlayer = new TrackPlayer(notes);
             mainMod.Helper.Events.GameLoop.UpdateTicking += playSong;
             Game1.musicCategory.SetVolume(0f);
@@ -74,7 +82,7 @@ namespace Playable_Piano.UI
                 }
                 else // Song finish marked by two invalid -200 Pitch notes
                 {
-                    mainMod.Monitor.Log("finished");
+                    mainMod.Monitor.Log("playBack finished");
                     mainMod.Helper.Events.GameLoop.UpdateTicking -= playSong;
                     Game1.musicCategory.SetVolume(Game1.options.musicVolumeLevel);
                     MainMenu menu = new MainMenu(mainMod);
@@ -93,6 +101,7 @@ namespace Playable_Piano.UI
             string input = button.ToString();
             if (input == "Escape" || input == "MouseRight")
             {
+                mainMod.Monitor.Log("playBack stopped");
                 mainMod.Helper.Events.GameLoop.UpdateTicking -= playSong;
                 Game1.musicCategory.SetVolume(Game1.options.musicVolumeLevel);
                 mainMod.Helper.Input.Suppress(button);
