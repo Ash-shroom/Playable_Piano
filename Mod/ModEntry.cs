@@ -63,22 +63,9 @@ namespace Playable_Piano
        /// <param name="e"></param>
         public void CPIntegration(object? sender, SaveLoadedEventArgs e)
         {
-            // check the config and attempt to load sounds not loaded yet, most likely the users custom sounds
+            // check the config and attempt to load sounds not loaded yet, mostly a user's custom sounds
             // happens after the save loaded as all previously added instruments should have their sounds loaded by now
             checkConfigSounds();
-             
-
-            // if a Content Pack has MarkActionApplied set to true, it only registers when first loaded.
-            // If the TriggerAction changes in the future, e.g. during a mod update, the changes won't get applied due to already being applied. 
-            // Thus it gets removed, from the list of run actions, for mods that forget to set it
-            /*foreach (var action in TriggerActionManager.GetActionsForTrigger("Mushroomy.PlayablePiano_SaveLoaded"))
-            {
-                if (Game1.player.triggerActionsRun.Contains(action.Data.Id))
-                {
-                    Monitor.Log($"{action.Data.Id} has Marked its AddSound Action as applied, please notify the Mod's author to set 'MarkActionApplied' as false.", LogLevel.Debug);
-                    Game1.player.triggerActionsRun.Remove(action.Data.Id);
-                }
-            }*/
             Monitor.Log("adding CP Instruments");
             TriggerActionManager.Raise("Mushroomy.PlayablePiano_SaveLoaded");
         }
