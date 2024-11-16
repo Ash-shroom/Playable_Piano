@@ -11,8 +11,8 @@ namespace Playable_Piano
 {
     internal sealed class PlayablePiano : Mod
     {
-        private Dictionary<string, string> instrumentSoundData = new Dictionary<string, string>();
         private BaseUI? activeMenu;
+        private ModConfig config;
         public string sound = "Mushroomy.PlayablePiano_Piano"; 
         public string soundLow = "Mushroomy.PlayablePiano_PianoLow";
         public string soundHigh = "Mushroomy.PlayablePiano_PianoHigh";
@@ -21,24 +21,99 @@ namespace Playable_Piano
 
 
 
+        #region public Methods
         public override void Entry(IModHelper helper)
-        {            
-            this.instrumentSoundData = helper.ReadConfig<ModConfig>().InstrumentData;
+        {
+            config = helper.ReadConfig<ModConfig>();
             TriggerActionManager.RegisterAction("Mushroomy.PlayablePiano_AddSound", this.addInstrument);
             TriggerActionManager.RegisterTrigger("Mushroomy.PlayablePiano_SaveLoaded");
-            if (this.instrumentSoundData == null)
+            if (config == null)
             {
                 this.Monitor.Log("Could not load Instrument Data, check whether the Mods config.json exists and file permissions. Using default config", LogLevel.Warn);
-                this.instrumentSoundData = new Dictionary<string, string>{{"Dark Piano", "Mushroomy.PlayablePiano_Piano"}, {"UprightPiano", "Mushroomy.PlayablePiano_Piano"}};
+                config = new ModConfig();
+                config.InstrumentData = new Dictionary<string, string>{{"Dark Piano", "Mushroomy.PlayablePiano_Piano"}, {"UprightPiano", "Mushroomy.PlayablePiano_Piano"}};
+                helper.WriteConfig<ModConfig>(config);
             }
-            loadSounds();
-            StardewValley.Object exmplItem = new StardewValley.Object();
+            loadDefaultSounds();
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
             helper.Events.GameLoop.SaveLoaded += this.CPIntegration;
         }
 
 
-        private void OnButtonPressed(object? sender, ButtonPressedEventArgs e)
+
+        /// <summary>
+        /// sets activeMenu to the specified value. 
+        /// </summary>
+        /// <param name="newMenu"></param>
+        public void setActiveMenu(BaseUI? newMenu)
+        {
+            this.activeMenu = newMenu;
+            Monitor.Log($"activeMenu changed to {newMenu}");
+            if (newMenu is not null)
+            {
+                Game1.activeClickableMenu = newMenu;
+            }
+        }
+
+       
+       /// <summary>
+       /// Raises the SaveLoaded Trigger to Add Content Patcher instruments to the config.
+       /// </summary>
+       /// <param name="sender"></param>
+       /// <param name="e"></param>
+        public void CPIntegration(object? sender, SaveLoadedEventArgs e)
+        {
+            // check the config and attempt to load sounds not loaded yet, most likely the users custom sounds
+            // happens after the save loaded as all previously added instruments should have their sounds loaded by now
+            checkConfigSounds();
+             
+
+            // if a Content Pack has MarkActionApplied set to true, it only registers when first loaded.
+            // If the TriggerAction changes in the future, e.g. during a mod update, the changes won't get applied due to already being applied. 
+            // Thus it gets removed, from the list of run actions, for mods that forget to set it
+            /*foreach (var action in TriggerActionManager.GetActionsForTrigger("Mushroomy.PlayablePiano_SaveLoaded"))
+            {
+                if (Game1.player.triggerActionsRun.Contains(action.Data.Id))
+                {
+                    Monitor.Log($"{action.Data.Id} has Marked its AddSound Action as applied, please notify the Mod's author to set 'MarkActionApplied' as false.", LogLevel.Debug);
+                    Game1.player.triggerActionsRun.Remove(action.Data.Id);
+                }
+            }*/
+            Monitor.Log("adding CP Instruments");
+            TriggerActionManager.Raise("Mushroomy.PlayablePiano_SaveLoaded");
+        }
+
+        /// <summary>
+        /// Adds a Content Packs instrument to the Config, but only if the sound exists.
+        /// </summary>
+        /// <param name="args"> Argument 1 is the instrument Name; Argument 2 is the soundName.</param>
+        /// <param name="context"></param>
+        /// <param name="error"></param>
+        /// <returns></returns>
+        public bool addInstrument(string[] args, TriggerActionContext context, out string? error)
+        {
+            string instrumentName = args[1];
+            string soundName = args[2];
+            if (Game1.soundBank.Exists(soundName))
+            {
+                if (config.InstrumentData.TryAdd(instrumentName, soundName))
+                {
+                    Monitor.Log($"Added {instrumentName} with sound {soundName}");
+                    Helper.WriteConfig<ModConfig>(config);
+                }
+                error = null;
+                return true;
+            }
+            else
+            {
+                error = $"sound {soundName} for {instrumentName} doesn't exist contact the Mod's author.";
+                return false;
+            }
+        }
+        #endregion
+
+        #region private Methods
+         private void OnButtonPressed(object? sender, ButtonPressedEventArgs e)
         {
             if (!Context.IsWorldReady)
             {
@@ -52,10 +127,11 @@ namespace Playable_Piano
             else if (Game1.activeClickableMenu is null && Game1.player.ActiveItem is not null && !Game1.player.ActiveItem.isPlaceable() && (e.Button.ToString() == "MouseLeft"))
             {
                 string instrument = Game1.player.ActiveItem.Name;
-                if (instrumentSoundData.ContainsKey(instrument))
+                if (config.InstrumentData.ContainsKey(instrument))
                 {
                     Helper.Input.Suppress(e.Button);
-                    openInstrumentMenu(instrumentSoundData[instrument]);
+                    Monitor.Log($"started Playing on Instrument {instrument}");
+                    openInstrumentMenu(config.InstrumentData[instrument]);
                     return;
                 }
             }
@@ -85,9 +161,10 @@ namespace Playable_Piano
                 }
 
                 // check if Sound data exists for the instrument
-                if (instrumentSoundData.ContainsKey(tile_name))
+                if (config.InstrumentData.ContainsKey(tile_name))
                 {
-                    openInstrumentMenu(instrumentSoundData[tile_name]);
+                    Monitor.Log($"Sat down at Instrument {tile_name}");
+                    openInstrumentMenu(config.InstrumentData[tile_name]);
                 }
                 else
                 {
@@ -102,51 +179,10 @@ namespace Playable_Piano
             }
         }
 
-        public void setActiveMenu(BaseUI? newMenu)
-        {
-            this.activeMenu = newMenu;
-            if (newMenu is not null)
-            {
-                Game1.activeClickableMenu = newMenu;
-            }
-        }
-
-       
-        public void CPIntegration(object? sender, SaveLoadedEventArgs e)
-        {
-            foreach (var action in TriggerActionManager.GetActionsForTrigger("Mushroomy.PlayablePiano_SaveLoaded"))
-            {
-                if (Game1.player.triggerActionsRun.Contains(action.Data.Id))
-                {
-                    Monitor.Log($"{action.Data.Id} has Marked its AddSound Action as applied, please notify the Mod's author to set 'MarkActionApplied' as false.", LogLevel.Debug);
-                    Game1.player.triggerActionsRun.Remove(action.Data.Id);
-                }
-            }
-            Monitor.Log("adding CP Instruments");
-            TriggerActionManager.Raise("Mushroomy.PlayablePiano_SaveLoaded");
-        }
-
-        public bool addInstrument(string[] args, TriggerActionContext context, out string? error)
-        {
-            string instrumentName = args[1];
-            string soundName = args[2];
-            if (Game1.soundBank.Exists(soundName))
-            {
-                // if it can't be added, then the sound assignment has already happened in the config
-                if (this.instrumentSoundData.TryAdd(instrumentName, soundName))
-                {
-                    Monitor.Log($"Added {instrumentName} with sound {soundName}");
-                }
-                error = null;
-                return true;
-            }
-            else
-            {
-                error = $"sound {soundName} doesn't exist";
-                return false;
-            }
-        }
-
+        /// <summary>
+        /// creates and opens the Mod's main Menu, additionally sets the currently used sound to the specified value
+        /// </summary>
+        /// <param name="soundName">the Sound of the instrument</param>
         private void openInstrumentMenu(string soundName)
         {
             sound = soundName;
@@ -154,6 +190,8 @@ namespace Playable_Piano
             soundHigh = soundName + "High";
             lowerOctaves = Game1.soundBank.Exists(soundLow);
             upperOctaves = Game1.soundBank.Exists(soundHigh);
+            Monitor.Log($"using sound {sound}");
+            Monitor.Log($"extended Pitches lower: {lowerOctaves}, higher: {upperOctaves}");
 
             // open main Piano Menu
             MainMenu pianoMenu = new MainMenu(this);
@@ -161,7 +199,11 @@ namespace Playable_Piano
             Game1.activeClickableMenu = pianoMenu;
         }
 
-
+        /// <summary>
+        /// Loads a sound from the sounds folder, then creates and adds a SoundCue for it  
+        /// </summary>
+        /// <param name="soundName">The Name of the Cue and of the sound file</param>
+        /// <returns></returns>
         private bool loadSoundData(string soundName)
         {
             try
@@ -183,48 +225,62 @@ namespace Playable_Piano
             }
         }
 
-        private void loadSounds()
+        /// <summary>
+        /// loads the default Sounds, which come bundled in with the mod. 
+        /// </summary>
+        private void loadDefaultSounds()
         {
             string[] defaultSounds = {"toyPianoLow", "toyPianoHigh", "fluteLow", "fluteHigh", "Mushroomy.PlayablePiano_Piano", "Mushroomy.PlayablePiano_PianoLow", "Mushroomy.PlayablePiano_PianoHigh"};
-            foreach (string defaultSound in defaultSounds)
+            foreach (string sound in defaultSounds)
             {
-                loadSoundData(defaultSound);
+                loadSoundData(sound);
+                Monitor.Log($"sound {sound} loaded", LogLevel.Debug);
             }
-            foreach (var entry in instrumentSoundData)
+        }
+
+        /// <summary>
+        /// checks which sounds from the config are loaded, and attempts to load missing ones from assets/sounds.
+        /// This usually only consist of Custom Sounds added by the user to override an existing sound.
+        /// </summary>
+        private void checkConfigSounds()
+        {
+            foreach (var entry in config.InstrumentData)
             {
                 var sound = entry.Value;
                 if (!Game1.soundBank.Exists(sound))
                 {
-                    if (loadSoundData(sound))
-                    {
-                        Monitor.Log($"loaded sound: {sound}", LogLevel.Debug);
-                    }
-                    else
+                    if (!loadSoundData(sound))
                     {
                         Monitor.Log($"Couldn't load {sound} for {entry.Key}. Skipping Entry", LogLevel.Warn);
                         continue;
                     }
+                    Monitor.Log($"sound {sound} loaded", LogLevel.Debug);
                 }
                 if (!Game1.soundBank.Exists(sound + "Low"))
                 {
                     if (loadSoundData(sound + "Low"))
                     {
-                        Monitor.Log($"  loaded lower range for {sound}", LogLevel.Debug);
+                        Monitor.Log($"  lower range for {sound} loaded", LogLevel.Debug);
                     }
+                }
+                else
+                {
+                    Monitor.Log($"  lower range for {sound} loaded", LogLevel.Debug);
                 }
                 if (!Game1.soundBank.Exists(sound + "High"))
                 {
                     if (loadSoundData(sound + "High"))
                     {
-                        Monitor.Log($"  loaded upper range for {sound}", LogLevel.Debug);
+                        Monitor.Log($"  upper range for {sound} loaded", LogLevel.Debug);
                     }
+                }
+                else
+                {
+                    Monitor.Log($"  upper range for {sound} loaded", LogLevel.Debug);
                 }
             }
         }
-
-        
-
-        
+        #endregion
     }
 }
 
