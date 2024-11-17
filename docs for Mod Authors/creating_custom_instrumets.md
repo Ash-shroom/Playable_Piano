@@ -1,13 +1,13 @@
 # Creating Custom Instruments with CP
 The Playable Piano Mod allows adding musical functionality to Items using Content Patcher. The Instruments can be either played in Freeplay Mode or MIDI Playback Mode.
-There are two types of instruments which can be added, placable furniture (e.g. a Piano) and portable Objects (e.g. an Ocarina).
+There are two types of instruments which can be added, placeable furniture (e.g. a Piano) and portable Objects (e.g. an Ocarina).
 
-Placable Instruments require the player to sit down at them, in order to be playable. Internally they thus should have a furniture type with seats (chair, bench, couch, armchair).
+Placeable Instruments require the player to sit down at them, in order to be playable. Internally they thus should have a furniture type with seats (chair, bench, couch, armchair).
 
-Portable Instruments have no restrictions besides not being placable. Ideally they should just be normal, non-edible Objects.
+Portable Instruments have no restrictions besides not being placeable. Ideally they should just be normal, non-edible Objects.
 
 ## The Sound
-Every Instrument needs atleast a base sound and can have 2 optional sounds for extended Pitch ranges (one high pitch sound and one low pitch). The Mod comes with a Piano sound, and extra sounds for the `toyPiano` and `flute` from the base game, which you can use, if you don't want to add your own. 
+Every Instrument needs atleast a base sound and can have 2 optional sounds for extended Pitch ranges (one high pitch sound and one low pitch). The Mod comes with a Piano sound `Mushroomy.PlayablePiano_Piano`, and additional sounds for the `toyPiano` and `flute` sounds from the base game, which you can use, if you don't want to add your own. 
 
 ### Base sound
 The base sound can either be a sound from the [base game](https://stardewvalleywiki.com/Modding:Audio#Sound) or can be a custom sound added by a mod (for more information on adding custom audio visit the [Stardew Valley Wiki Page](https://stardewvalleywiki.com/Modding:Audio) on Modding Audio).
@@ -32,7 +32,7 @@ Once you have added your sound and your Instrument to your Pack, you have to tel
         "Mushroomy.PlayablePiano_AddSound <Name/ItemId of your Instrument> <ID of your sound>"
         ... // If you have multiple Instruments you have to add a line for every one of them
       ],
-      "MarkActionApplied": false // If you don't set this to false, your instrument might not properly work when loading the game after a save
+      "MarkActionApplied": false // This is optional, but if you don't set this to false, changes to this Trigger Action in the future won't be automatically applied.  
     }
   }
 }

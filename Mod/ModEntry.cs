@@ -21,7 +21,6 @@ namespace Playable_Piano
         private OnlinePlayer? onlinePlayer;
 
 
-
         #region public Methods
         public override void Entry(IModHelper helper)
         {
@@ -30,7 +29,7 @@ namespace Playable_Piano
             TriggerActionManager.RegisterTrigger("Mushroomy.PlayablePiano_SaveLoaded");
             if (config == null)
             {
-                this.Monitor.Log("Could not load Instrument Data, check whether the Mods config.json exists and file permissions. Using default config", LogLevel.Warn);
+                this.Monitor.Log("Could not load Instrument Data, check whether the Mods config.json exists and the file permissions. Using default config", LogLevel.Warn);
                 config = new ModConfig();
                 config.InstrumentData = new Dictionary<string, string>{{"Dark Piano", "Mushroomy.PlayablePiano_Piano"}, {"UprightPiano", "Mushroomy.PlayablePiano_Piano"}};
                 helper.WriteConfig<ModConfig>(config);
@@ -95,7 +94,7 @@ namespace Playable_Piano
             }
             else
             {
-                error = $"sound {soundName} for {instrumentName} doesn't exist contact the Mod's author.";
+                error = $"sound {soundName} for {instrumentName} couldn't be added, since it doesn't exist. Please contact the Mod's author.";
                 return false;
             }
         }
