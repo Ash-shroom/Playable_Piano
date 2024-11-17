@@ -7,3 +7,7 @@
 - Added Content Patcher Integration, allowing for the creation of custom Instruments (stationary and portable)
 - added flute sound
 - Reduced Noise on low Notes from the custom Piano sound
+
+## 1.4.0
+- CP Instruments now get added to the mods config
+- added multiplayer support

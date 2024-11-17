@@ -18,6 +18,7 @@ namespace Playable_Piano
         public string soundHigh = "Mushroomy.PlayablePiano_PianoHigh";
         public bool lowerOctaves = false;
         public bool upperOctaves = false;
+        private OnlinePlayer? onlinePlayer;
 
 
 
@@ -37,6 +38,7 @@ namespace Playable_Piano
             loadDefaultSounds();
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
             helper.Events.GameLoop.SaveLoaded += this.CPIntegration;
+            helper.Events.Multiplayer.ModMessageReceived += this.receiveMessage;
         }
 
 
@@ -97,6 +99,31 @@ namespace Playable_Piano
                 return false;
             }
         }
+
+        public void receiveMessage(object? sender, ModMessageReceivedEventArgs e)
+        {
+            if (e.FromModID == this.ModManifest.UniqueID)
+            {
+                if (e.Type == "startPlayback")
+                {
+                    startPlayback message = e.ReadAs<startPlayback>();
+                    onlinePlayer = new OnlinePlayer(this, message.performerTilePos, message.notation, message.sound);
+                } 
+                else if (e.Type == "stopPlayback" && onlinePlayer is not null)
+                {
+                    onlinePlayer.stopSong();
+                    onlinePlayer = null;
+                }
+                else if (e.Type == "playNote")
+                {
+                    playNote message = e.ReadAs<playNote>();
+                    string receivedSound = !Game1.soundBank.Exists(message.sound) ? message.sound : "toyPiano";
+                    Game1.soundBank.GetCueDefinition(message.sound).sounds.First().pitch = (message.pitch - 1200) / 1200f;
+                    Game1.currentLocation.localSound(message.sound, message.performerTile, message.pitch);
+                }
+            }
+        }
+
         #endregion
 
         #region private Methods

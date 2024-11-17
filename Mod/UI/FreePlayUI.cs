@@ -115,8 +115,19 @@ namespace Playable_Piano.UI
                 if (!Game1.soundBank.GetCue(selectedSoundCue).IsPitchBeingControlledByRPC)
                 {
                     Game1.soundBank.GetCueDefinition(selectedSoundCue).sounds.First().pitch = (playedPitch - 1200) / 1200f;
+                    location.localSound(selectedSoundCue, tileCords, playedPitch);
+                    if (Game1.IsMultiplayer)
+                    {
+                        List<long> playersAtLocation = Game1.currentLocation.farmers.Where(player => player.currentLocation == Game1.currentLocation).Select(player => player.UniqueMultiplayerID).ToList();
+                        playersAtLocation.Remove(Game1.player.UniqueMultiplayerID);
+                        mainMod.Helper.Multiplayer.SendMessage(new playNote(selectedSoundCue, playedPitch, tileCords), "playNote", new string[] {mainMod.ModManifest.UniqueID}, playersAtLocation.ToArray());
+                    }
                 }
-                location.playSound(selectedSoundCue, tileCords, playedPitch);
+                else
+                {
+                    //RPC Controlled sound pitching works in Multiplayer, thus no extra message needed.
+                    location.playSound(selectedSoundCue, tileCords, playedPitch);
+                }
                 
             }
             else if (input == "LeftControl" && mainMod.lowerOctaves)

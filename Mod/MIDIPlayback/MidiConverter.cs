@@ -1,6 +1,4 @@
 using MidiParser;
-using StardewValley.Menus;
-using System.Runtime.ConstrainedExecution;
 namespace Playable_Piano
 {
     public class MidiConverter

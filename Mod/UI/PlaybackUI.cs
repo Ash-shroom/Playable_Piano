@@ -1,19 +1,9 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
+﻿using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Media;
 using MidiParser;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
-using StardewValley.Audio;
-using StardewValley.GameData;
-using StardewValley.Menus;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Playable_Piano.UI
 {
@@ -50,6 +40,10 @@ namespace Playable_Piano.UI
             songPlayer = new TrackPlayer(notes);
             mainMod.Helper.Events.GameLoop.UpdateTicking += playSong;
             Game1.musicCategory.SetVolume(0f);
+            startPlayback startPerformanceMessage = new startPlayback(Game1.player.Tile, notes, sound);
+            List<long> playersAtLocation = Game1.currentLocation.farmers.Where(player => player.currentLocation == Game1.currentLocation).Select(player => player.UniqueMultiplayerID).ToList();
+            playersAtLocation.Remove(Game1.player.UniqueMultiplayerID);
+            mainMod.Helper.Multiplayer.SendMessage<startPlayback>(startPerformanceMessage, "startPlayback", new string[] {mainMod.ModManifest.UniqueID}, playersAtLocation.ToArray());
         }
 
 
@@ -76,7 +70,7 @@ namespace Playable_Piano.UI
                     {
                         Game1.soundBank.GetCueDefinition(playedSoundCue).sounds.First<XactSoundBankSound>().pitch = (playedNote.pitch - 1200) / 1200f;
                     }
-                    Game1.currentLocation.playSound(playedSoundCue, Game1.player.Tile, playedNote.pitch);
+                    Game1.currentLocation.localSound(playedSoundCue, Game1.player.Tile, playedNote.pitch);
 
 
                 }
@@ -103,6 +97,8 @@ namespace Playable_Piano.UI
             {
                 mainMod.Monitor.Log("playBack stopped");
                 mainMod.Helper.Events.GameLoop.UpdateTicking -= playSong;
+                List<long> playersAtLocation = Game1.currentLocation.farmers.Where(player => player.currentLocation == Game1.currentLocation).Select(player => player.UniqueMultiplayerID).ToList();
+                mainMod.Helper.Multiplayer.SendMessage(new stopPlayback(), "stopPlayback", new string[] {mainMod.ModManifest.UniqueID});
                 Game1.musicCategory.SetVolume(Game1.options.musicVolumeLevel);
                 mainMod.Helper.Input.Suppress(button);
                 exitThisMenu();
