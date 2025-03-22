@@ -40,6 +40,10 @@ namespace Playable_Piano
             helper.Events.Multiplayer.ModMessageReceived += this.receiveMessage;
         }
 
+        public override object? GetApi()
+        {
+            return new PianoApi(this);
+        }
 
 
         /// <summary>
@@ -196,7 +200,7 @@ namespace Playable_Piano
         /// creates and opens the Mod's main Menu, additionally sets the currently used sound to the specified value
         /// </summary>
         /// <param name="soundName">the Sound of the instrument</param>
-        private void openInstrumentMenu(string soundName)
+        public void openInstrumentMenu(string soundName)
         {
             sound = soundName;
             soundLow = soundName + "Low";
