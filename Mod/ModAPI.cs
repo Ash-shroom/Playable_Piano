@@ -1,3 +1,5 @@
+using StardewValley;
+
 namespace Playable_Piano
 {
     public class PianoApi
@@ -9,7 +11,14 @@ namespace Playable_Piano
         }
         public void playInstrument(string baseSoundName)
         {
-            mainMod.openInstrumentMenu(baseSoundName);
+            if (Game1.soundBank.Exists(baseSoundName))
+            {
+                mainMod.openInstrumentMenu(baseSoundName);
+            }
+            else
+            {
+                mainMod.Monitor.Log($"Sound {baseSoundName} does not exist in the soundBank", StardewModdingAPI.LogLevel.Trace);
+            }
         }
     }
 }
