@@ -38,6 +38,7 @@ namespace Playable_Piano
             helper.Events.Input.ButtonPressed += this.OnButtonPressed;
             helper.Events.GameLoop.SaveLoaded += this.CPIntegration;
             helper.Events.Multiplayer.ModMessageReceived += this.receiveMessage;
+            helper.ConsoleCommands.Add("reset_instrument_sounds", "resets all instruments to their initial base sound", this.reset_instrument_sounds);
         }
 
         public override object? GetApi()
@@ -296,6 +297,30 @@ namespace Playable_Piano
                     Monitor.Log($"  upper range for {sound} loaded", LogLevel.Debug);
                 }
             }
+        }
+
+        /// <summary>
+        /// sets all Instrument Sounds to the default sound specified in the corresponding Content Pack.
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="args"></param>
+        private void reset_instrument_sounds(string command, string[] args)
+        {
+            Monitor.Log("Reseting Trigger Action");
+            foreach (var action in TriggerActionManager.GetActionsForTrigger("Mushroomy.PlayablePiano_SaveLoaded"))
+            {
+                if (Game1.player.triggerActionsRun.Contains(action.Data.Id))
+                {
+                    Monitor.Log($"{action.Data.Id} has Marked its AddSound Action as applied, please notify the Mod's author to set 'MarkActionApplied' as false.", LogLevel.Debug);
+                    Game1.player.triggerActionsRun.Remove(action.Data.Id);
+                }
+            }
+            Monitor.Log("Reseting Pianos");
+            string errorMsg = ""; // only because addInstruments requires it.
+            addInstrument(new string[] {"", "Dark Piano", "Mushroomy.PlayablePiano_Piano"}, new TriggerActionContext(), out errorMsg);
+            addInstrument(new string[] {"", "UprightPiano", "Mushroomy.PlayablePiano_Piano"}, new TriggerActionContext(), out errorMsg);
+            Monitor.Log("Rerunning CP Integration");
+            CPIntegration(this, new SaveLoadedEventArgs());
         }
         #endregion
     }
