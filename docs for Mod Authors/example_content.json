@@ -1,0 +1,85 @@
+{
+  // this example is based on the content.json of my Playable Kalimba Mod
+  // https://www.nexusmods.com/stardewvalley/mods/32515
+  "Format": "2.3.0",
+  "Changes": [
+    {
+      "Action": "Load",
+      "Target": "Mods/{{ModId}}/sprites/InstrumentSprite",
+      "FromFile": "assets/sprites/{{TargetWithoutPath}}.png"
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/Objects",
+      "Entries": {
+        "{{ModId}}_CustomInstrument": {
+          "Name": "{{ModId}}_CustomInstrument",
+          "DisplayName": "Custom Instrument",
+          "Description": "a cool Instrument I just thought of",
+          "Category": -99,
+          "Price": 1000,
+          "Texture": "Mods/{{ModId}}/sprites/InstrumentSprite",
+          "SpriteIndex": 0,
+          "CanBeGivenAsGift": false
+        }
+      }
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/AudioChanges",
+      "Entries": {
+        "{{ModId}}_KalimbaSound": {
+          "ID": "{{ModId}}_InstrumentSound",
+          "Category": "Sound",
+          // this file should contain a sound pitched at C, ideally at C6
+          "FilePaths": [ "{{AbsoluteFilePath: assets/sounds/Instrument_sound.wav}}" ],
+          "StreamedVorbis": false,
+          "Looped": false
+        },
+        // while not necessary, it is highly recommended to add these for more notes
+        // it is also important, that the Names of these sounds is EXACTLY the same as the base sound
+        // but with 'Low' and 'High' added to the end
+        "{{ModId}}_InstrumentSoundLow": {
+          "ID": "{{ModId}}_InstrumentSoundLow",
+          "Category": "Sound",
+          // the sound in this file should be 2 Octaves lower than the base sound
+          "FilePaths": [ "{{AbsoluteFilePath: assets/sounds/Instrument_soundLow.wav}}" ],
+          "StreamedVorbis": false,
+          "Looped": false
+        },
+        "{{ModId}}_InstrumentSoundHigh": {
+          "ID": "{{ModId}}_InstrumentSoundHigh",
+          "Category": "Sound",
+          // the sound in this file should be 2 Octaves higher than the base sound
+          "FilePaths": [ "{{AbsoluteFilePath: assets/sounds/Instrument_soundHigh.wav}}" ],
+          "StreamedVorbis": false,
+          "Looped": false
+        }
+      }
+    },
+    {
+      // This is where the magic happens and you tell the main Mod, 
+      // which Instrument should use which sound
+      "Action": "EditData",
+      "Target": "Data/TriggerActions",
+      "Entries": {
+        "{{ModId}}_LoadInstrument": {
+          "Id": "{{ModId}}_LoadInstrument",
+          "Trigger": "Mushroomy.PlayablePiano_SaveLoaded",
+          "Actions": [
+            // if you have Multiple Instruments, you can add all of them in this one Trigger Action
+            "Mushroomy.PlayablePiano_AddSound {{ModId}}_CustomInstrument {{ModId}}_InstrumentSound"
+          ]
+        }
+      }
+    },
+    {
+      "Action": "EditData",
+      "Target": "Data/CraftingRecipes",
+      "Entries": {
+        "{{ModId}}_Kalimba": "335 3 388 50/Home/{{ModId}}_CustomInstrument/false/Foraging 3/"
+      }
+    }
+  ]
+}
+
