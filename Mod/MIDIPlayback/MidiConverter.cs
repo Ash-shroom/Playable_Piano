@@ -1,4 +1,5 @@
 using MidiParser;
+using StardewModdingAPI;
 namespace Playable_Piano
 {
     public class MidiConverter
@@ -6,13 +7,15 @@ namespace Playable_Piano
         private MidiFile midiFile;
         private int mainTrackNumber;
         private int TicksPerQuarterNote;
+        internal PlayablePiano mainMod;
 
-
-        public MidiConverter(MidiFile midiFile, int mainTrackNumber )
+        internal MidiConverter(MidiFile midiFile, int mainTrackNumber, PlayablePiano mainMod)
         {
             this.midiFile = midiFile;
             this.mainTrackNumber = mainTrackNumber;
-            TicksPerQuarterNote = midiFile.TicksPerQuarterNote;
+            TicksPerQuarterNote = midiFile.TicksPerQuarterNote == 0 ? 24 : midiFile.TicksPerQuarterNote; // standard value
+            mainMod.Monitor.Log($"Converter: Ticks per quarter Note: {midiFile.TicksPerQuarterNote}");
+            this.mainMod = mainMod;
         }
 
         public List<Note> convertToNotes()
@@ -27,7 +30,9 @@ namespace Playable_Piano
                 {
                     if (midiEvent.MetaEventType == MetaEventType.Tempo)
                     {
+                        mainMod.Monitor.Log($"Converter: BPM changes to {midiEvent.Arg2} at midi Tick {midiEvent.Time}");
                         BPMIntervals.Add((midiEvent.Time, calculateTickRatio(midiEvent.Arg2)));
+                        mainMod.Monitor.Log($"Converter: New TickRatio: {BPMIntervals[0].Item2}");
                     }
                 }
             }
@@ -92,10 +97,24 @@ namespace Playable_Piano
             return notes;
         }
 
+        /// <summary>
+        /// calculates, how many midiTicks fit into one Ingame Tick, depending on the current BPM. 
+        /// </summary>
+        /// <param name="BPM"></param>
+        /// <returns></returns>
         private int calculateTickRatio(int BPM)
         {
             int ratio = BPM * TicksPerQuarterNote / 3600;
-            return ratio;
+            if (ratio == 0)
+            {
+                // if both BPM and TicksPerQuarterNote are very small, result is less than zero
+                mainMod.Monitor.Log($"Converter: BPM and Ticks per quarter Note are too small, defaulting to a ratio of 1");
+                return 1;
+            }
+            else
+            {
+                return ratio;
+            }
         }
 
     }
