@@ -11,3 +11,10 @@
 ## 1.4.0
 - CP Instruments now get added to the mods config
 - added multiplayer support
+
+## 1.5.0
+- added API for other Mods to use
+- added 'reset_instrument_sounds' command for reseting instrument sounds in the config
+
+## 1.5.1
+- fixed divide by zero error caused by Midi Files where BPM and Ticks per Quarter Note are too small
